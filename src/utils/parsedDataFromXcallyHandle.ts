@@ -1,6 +1,5 @@
 import { Request } from "express";
 import ParsedData from "../interfaces/ParsedData";
-import InteractionContext from "../interfaces/InterationContext";
 
 const parsedDataHandleFromValue = (req: Request): ParsedData => {
     try {
@@ -137,50 +136,6 @@ const parseContextFromJson = (json: any): ParsedData => {
     }
 };
 
-const parsedDataHandleFromJson = (context: InteractionContext): ParsedData => {
-    try {
 
-        // Obtendo os valores do contexto
-        const { contactId, interactionId, sourceAccountId } = context;
 
-        // Normalizando os valores para string (caso venham como números)
-        const data = {
-            accountId: sourceAccountId?.toString() ?? "", // sourceAccountId é o AccountId no JSON
-            contactId: contactId?.toString() ?? "",
-            interactionId: interactionId?.toString() ?? "",
-            messageFromClient: "inicio pesquisa satisfação", // Valor padrão, já que não há "Message" no JSON
-        };
-
-        // Lista de campos obrigatórios que devem estar preenchidos
-        const requiredFields: (keyof typeof data)[] = [
-            "accountId",
-            "contactId",
-            "interactionId",
-            "messageFromClient"
-        ];
-
-        // Coleta os campos ausentes
-        const missingFields = requiredFields.filter(
-            (field) => !data[field].trim()
-        );
-
-        // Se houver campos ausentes, lança um erro com a lista completa
-        if (missingFields.length > 0) {
-            throw new Error(`Campos obrigatórios ausentes: ${missingFields.join(", ")}`);
-        }
-
-        // Retorna o objeto ParsedData
-        return {
-            composedSessionId: `OpenChannel${data.accountId}${data.interactionId}`,
-            accountId: data.accountId,
-            contactId: data.contactId,
-            interactionId: data.interactionId,
-            messageFromClient: data.messageFromClient,
-        };
-    } catch (error: any) {
-        console.error("Erro ao processar parsedDataHandle:", error.message);
-        throw new Error(error.message);
-    }
-};
-
-export default { parsedDataHandle, parsedDataHandleFromJson, parseContextFromJson, parsedDataHandleFromValue };
+export default { parsedDataHandle, parseContextFromJson, parsedDataHandleFromValue };

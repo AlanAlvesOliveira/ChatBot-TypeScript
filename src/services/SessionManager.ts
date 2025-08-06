@@ -4,18 +4,19 @@ import ParsedData from "../interfaces/ParsedData";
 export default class SessionManager {
     private static sessions: Map<string, Session> = new Map();
 
-    public static createOrGetSession(data: ParsedData): Session {
-        const sessionId = data.composedSessionId;
+    public static async createOrGetSession(data: ParsedData): Promise<Session> {
 
+        const sessionId = data.composedSessionId;
         let currentSession = this.sessions.get(sessionId);
 
         if (!currentSession) {
+
             console.log(`🆕 Criando nova sessão: ${sessionId}`);
-            currentSession = new Session(data);
-            this.sessions.set(sessionId, currentSession);
-        } else {
-            console.log(`✅ Sessão existente encontrada: ${sessionId}`);
-            currentSession.updateData(data);
+            currentSession = await Session.newSession(data);
+
+            if (currentSession.salvarEmMemoria) {
+                this.sessions.set(sessionId, currentSession);
+            }
         }
 
         return currentSession;

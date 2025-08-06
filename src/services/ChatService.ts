@@ -1,40 +1,35 @@
+// src/services/ChatService.ts
 import { Request } from "express";
 import ParsedData from "../interfaces/ParsedData";
-import parsedDataHandle from "../utils/parsedDataFromXcallyHandle";
 import SessionManager from "../services/SessionManager";
+import actionRegistry from "../core/actionsRegistry";
+import Session from "../core/Session";
 
-import XcallyApiService from "./XcallyApiService";
-
+// Defina o tipo para as ações do fluxo
+interface FlowAction {
+    type: keyof typeof actionRegistry;
+    params: any; // Ou use um tipo mais específico
+}
 
 export default class ChatService {
     static async flow(data: ParsedData): Promise<void> {
-
-
-        // Obtém ou cria uma sessão
-        const sessionData = SessionManager.createOrGetSession(data);
-        await sessionData.resetTimeout();
-
-        let currentStep = await sessionData.getCurrentStep();
+        const session = await SessionManager.createOrGetSession(data);
+        const currentStep = await session.getCurrentStep();
 
         if (currentStep?.actions) {
             for (const action of currentStep.actions) {
                 try {
-                    const resultAction = await action(sessionData);
-
-                    if (!resultAction.continuarFluxo) {
-                        console.log('fluxo interrompido', action.name);
-                        return;
+                    // Verificação de tipo segura
+                    const handler = actionRegistry[action.type as keyof typeof actionRegistry];
+                    if (handler) {
+                        await handler(session, action.params);
+                    } else {
+                        console.error(`Tipo de ação não suportado: ${action.type}`);
                     }
-
-                    if (resultAction.nextStep) {
-                        currentStep = resultAction.nextStep
-                    }
-
                 } catch (error) {
-                    console.error("Erro ao executar ação:", error);
+                    console.error(`Erro ao executar ação ${action.type}:`, error);
                 }
             }
         }
-
     }
 }
