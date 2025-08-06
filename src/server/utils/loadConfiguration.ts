@@ -38,6 +38,7 @@ const loadConfiguration = (): void => {
         }
 
         systemConfiguration = allConfigs[envKey] as SystemConfiguration;
+        systemConfiguration.evn = envKey
         console.log(`✅ Configurações do ambiente '${envKey}' carregadas com sucesso.`);
     } catch (err) {
         console.error(`❌ Erro ao carregar as configurações:`, err);

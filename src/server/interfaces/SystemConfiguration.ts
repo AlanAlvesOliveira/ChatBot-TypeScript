@@ -1,5 +1,7 @@
 export interface SystemConfiguration {
 
+    evn?: string;
+
     plugin: {
         port: number;
         TIMEOUT_INTERACAO_EM_SEGUNDOS: number;
