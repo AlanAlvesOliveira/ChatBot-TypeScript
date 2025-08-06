@@ -3,19 +3,15 @@ export interface SystemConfiguration {
     plugin: {
         port: number;
         TIMEOUT_INTERACAO_EM_SEGUNDOS: number;
+        TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS: number;
     };
 
     xcally: {
         url: string;
         API_KEY: string;
-        ID_FILA_PESQUISA_SATISFACAO: number;
+        ID_OPEN_CHANNEL: number;
     };
 
-    xcallyServidorAtendimento: {
-        url: string;
-        API_KEY: string;
-        ID_FILA_PESQUISA_SATISFACAO: number;
-    };
 
     DATABASE: {
         host: string;

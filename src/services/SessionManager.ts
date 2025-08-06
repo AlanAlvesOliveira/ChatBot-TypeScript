@@ -1,4 +1,4 @@
-import Session from "./Session";
+import Session from "../core/Session";
 import ParsedData from "../interfaces/ParsedData";
 
 export default class SessionManager {
