@@ -3,16 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "tsc",
-    "dev": "nodemon src/App.ts",
-    "start": "node dist/App.js"
+    "build": "npm run clean && tsc && npm run copyHtml && npm run copyJson && npm run copyConfigJson",
+    "clean": "rimraf dist",
+    "copyHtml": "copyfiles -u 2 \"src/client/**/*\" \"dist/client/\"",
+    "copyJson": "copyfiles \"./package.json\" \"./package-lock.json\" \"dist/\"",
+    "copyConfigJson": "copyfiles -u 2 \"src/server/config.json\" \"dist/server\"",
+    "dev": "nodemon src/server/App.ts",
+    "start": "node dist/server/App.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "archiver": "^7.0.1",
+    "copyfiles": "^2.4.1",
     "nodemon": "^3.1.10",
+    "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },

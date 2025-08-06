@@ -1,9 +1,7 @@
-// src/services/ChatService.ts
-import { Request } from "express";
 import ParsedData from "../interfaces/ParsedData";
-import SessionManager from "../services/SessionManager";
+import SessionManager from "./SessionManager";
 import actionRegistry from "../core/actionsRegistry";
-import Session from "../core/Session";
+
 
 // Defina o tipo para as ações do fluxo
 interface FlowAction {

@@ -7,7 +7,7 @@ import XcallyApiService from "../services/XcallyApiService";
 import delay from "../utils/delay";
 import { StoredStep } from "../interfaces/StoredStep";
 import { Interaction } from "../models/InteractionSession";
-import steps from "../core/flows/flow_v1"
+import steps from "./flows/flow_v1"
 import { where } from "sequelize";
 import { osIp } from "../utils/osIp";
 
