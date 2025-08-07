@@ -114,7 +114,6 @@ async function createConnection(
 async function sincronizeTables(env: string): Promise<boolean> {
     try {
 
-
         if (env !== 'prod') {
             await sequelize.sync({ alter: true }); // Desenvolvimento: ajusta as tabelas conforme os modelos
             console.log('✅ Modelos sincronizados com o banco de dados (modo desenvolvimento).');
@@ -138,17 +137,16 @@ async function initializeDatabase(): Promise<Sequelize> {
     try {
 
         const config = getConfiguration();
-        const DB_NAME = "";
-        const evn = "";
-        const { host, username, password } = config.DATABASE;
+        const { host, username, password, dbname } = config.DATABASE;
 
         //await ensureDatabaseExists(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
-        sequelize = await createConnection(host, DB_NAME, username, password);
+        sequelize = await createConnection(host, dbname, username, password);
 
         await sequelize.authenticate();
         console.log('✅ Conexão com o banco de dados estabelecida com sucesso.');
 
-        const connected = await sincronizeTables(evn);
+        if (!config.evn) throw new Error('ENV não identificado!');
+        const connected = await sincronizeTables(config.evn);
         if (!connected) throw new Error('Falha na verificação de conexão.');
 
         return sequelize;

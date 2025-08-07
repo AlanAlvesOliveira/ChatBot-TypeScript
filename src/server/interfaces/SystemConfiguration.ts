@@ -16,6 +16,7 @@ export interface SystemConfiguration {
 
 
     DATABASE: {
+        dbname: string
         host: string;
         port: number;
         username: string;

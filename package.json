@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "npm run clean && tsc && npm run copyHtml && npm run copyJson && npm run copyConfigJson",
+    "build": "npm run clean && tsc && npm run copyHtml && npm run copyJson && npm run copyConfigJson && node build",
     "clean": "rimraf dist",
     "copyHtml": "copyfiles -u 2 \"src/client/**/*\" \"dist/client/\"",
     "copyJson": "copyfiles \"./package.json\" \"./package-lock.json\" \"dist/\"",

@@ -41,11 +41,12 @@ const createZip = async (zipName, folderName, manifestContent) => {
 
     // Remove o arquivo `manifest.json` temporário
     fs.unlinkSync(manifestPath);
+    return outputPath;
 };
 
 // Conteúdo do `manifest.json`
 const manifestChat01 = {
-    "name": "chatbot",
+    "name": "novoChatbot",
     "version": "1.0.1",
     "description": "todo - localização do código",
     "author": {
@@ -56,7 +57,7 @@ const manifestChat01 = {
     "type": "script",
     "sidebar": "adminOnly",
     "parameters": {
-        "scriptName": "chatbot",
+        "scriptName": "novoChatbot",
         "scriptPath": "server/index.js",
         "views": {
             "admin": "client/admin/index.html"
@@ -67,8 +68,10 @@ const manifestChat01 = {
 // Gera o arquivo zip
 (async () => {
     try {
-        await createZip('chatbot.zip', 'chatbot', manifestChat01);
-        console.log('Arquivo chatbot.zip criado com sucesso na pasta dist!');
+        const outputPath = await createZip('novoChatbot.zip', 'novoChatbot', manifestChat01);
+        console.log('Arquivo novoChatbot.zip criado com sucesso na pasta dist!');
+        console.log('outputPath ', outputPath);
+
     } catch (err) {
         console.error('Erro ao criar o arquivo zip:', err);
     }

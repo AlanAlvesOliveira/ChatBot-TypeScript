@@ -1,7 +1,7 @@
 {
     "LOCALHOST": {
         "plugin": {
-            "port": 3108,
+            "port": 3109,
             "TIMEOUT_INTERACAO_EM_SEGUNDOS": 60
         },
         "xcally": {
@@ -10,6 +10,7 @@
             "ID_FILA_PESQUISA_SATISFACAO": 28
         },
         "DATABASE": {
+            "dbname": "chatbotdb",
             "host": "localhost",
             "port": 3306,
             "username": "root",
@@ -19,7 +20,7 @@
     },
     "DEV": {
         "plugin": {
-            "port": 3108,
+            "port": 3109,
             "TIMEOUT_INTERACAO_EM_SEGUNDOS": 300
         },
         "xcally": {
@@ -29,7 +30,7 @@
         },
         "DATABASE": {
             "host": "localhost",
-            "port": 3306,
+            "port": 3109,
             "username": "root",
             "password": "T3l3d@t@2022",
             "name": "motion2"
@@ -37,7 +38,7 @@
     },
     "PROD": {
         "plugin": {
-            "port": 3108,
+            "port": 3109,
             "TIMEOUT_INTERACAO_EM_SEGUNDOS": 180
         },
         "xcally": {
