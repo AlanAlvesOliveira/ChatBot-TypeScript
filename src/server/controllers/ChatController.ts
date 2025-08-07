@@ -8,8 +8,6 @@ export default class ChatController {
     static async sendChatInteraction(req: Request, res: Response) {
 
         try {
-
-
             const parsedData = ParsedHandle.parsedDataHandleFromValue(req);
             console.log('sendChatInteraction -> ', parsedData);
             await ChatService.flow(parsedData);

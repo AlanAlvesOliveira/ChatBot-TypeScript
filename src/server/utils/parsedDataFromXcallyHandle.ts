@@ -28,7 +28,7 @@ export default class ParsedHandle {
             if (!interactionId) {
                 interactionId = params.get("InteractionId") ?? "";
             }
-            let messageFromClient = params.get("message") ?? "teste";
+            let messageFromClient = params.get("message") ?? "";
 
             if (!messageFromClient) {
                 messageFromClient = params.get("Message") ?? "";

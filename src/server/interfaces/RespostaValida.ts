@@ -1,4 +1,4 @@
 export default interface RespostaValida {
-    respostaId: string;
+    respostaValue: string;
     nextStepId: string;
 }

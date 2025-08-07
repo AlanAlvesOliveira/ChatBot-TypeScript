@@ -14,7 +14,10 @@ export default class ChatService {
 
         if (currentStep?.actions) {
             for (const action of currentStep.actions) {
+
+
                 console.log(`Executando ${session.interactionIdBd} action:${action.type}  `)
+
                 try {
                     // Verificação de tipo segura
                     const handler = actionRegistry[action.type];

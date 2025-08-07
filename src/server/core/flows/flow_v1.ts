@@ -7,17 +7,38 @@ const flow: Flow = {
     steps: [
         {
             stepId: '1',
-            respostasValidas: undefined,
+            respostasValidas: [
+                { respostaValue: "1", nextStepId: "1_1" },
+                { respostaValue: "2", nextStepId: "1_2" }
+            ],
             actions: [
-                { type: 'enviaMensagem', params: ['Bem vindo, como posso ajudar?'] },
-                { type: 'atualizaStatusStep', params: ['2'] }
+                { type: 'enviaMensagem', params: ["Bem-vindo ao serviço de atendimento ao Cliente Husqvarna"] },
+                {
+                    type: 'enviaMensagem', params: [`Para começarmos, digite uma das opções abaixo
+Assuntos de consumidor digite 1
+Assuntos de Revenda digite 2`]
+                },
+                { type: 'aguardaResposta', params: ['2'] }
             ]
         },
         {
-            stepId: '2',
+            stepId: '1_1',
             respostasValidas: undefined,
             actions: [
-                { type: 'enviaMensagem', params: ['Menu de opções 2'] }
+                {
+                    type: 'enviaMensagem', params: [`Ecommerce digite 1
+Pós vendas e suporte digite 2`]
+                }
+            ]
+        },
+        {
+            stepId: '1_2',
+            respostasValidas: undefined,
+            actions: [
+                {
+                    type: 'enviaMensagem', params: [`Financeiro digite 1
+Pós vendas e suporte digite 2`]
+                }
             ]
         }
     ],

@@ -15,6 +15,7 @@ export default class Session {
 
     public interactionIdBd: number;
     private parsedData: ParsedData;
+    public sessionDb: Interaction
 
     private SESSION_TIMEOUT_DURATION: number;
     private TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS: number;
@@ -22,10 +23,11 @@ export default class Session {
     private sessionAlertTimeout: NodeJS.Timeout | null = null;
     public salvarEmMemoria = false;
 
-    private constructor(data: ParsedData, interactionIdBd: number, ipServidor: string) {
+    private constructor(data: ParsedData, interactionIdBd: number, ipServidor: string, sessionDb: Interaction) {
 
         this.interactionIdBd = interactionIdBd;
         this.parsedData = data;
+        this.sessionDb = sessionDb;
 
         this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS = getConfiguration().plugin.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS * 1000;
         this.SESSION_TIMEOUT_DURATION = getConfiguration().plugin.TIMEOUT_INTERACAO_EM_SEGUNDOS * 1000;
@@ -78,7 +80,7 @@ export default class Session {
         });
 
         if (sessionExistenteBd && sessionExistenteBd.ipServidor) {
-            return new Session(parsedData, sessionExistenteBd.id, sessionExistenteBd.ipServidor);
+            return new Session(parsedData, sessionExistenteBd.id, sessionExistenteBd.ipServidor, sessionExistenteBd);
         }
 
         let currentStep = steps.steps.find(x => x.stepId === '1')
@@ -107,7 +109,7 @@ export default class Session {
 
 
             console.log(`Interaction interactionIdBd: ${interactionIdBd.id}, composedSessionId: ${parsedData.composedSessionId} criada com sucesso!`);
-            return new Session(parsedData, interactionIdBd.id, osIp());
+            return new Session(parsedData, interactionIdBd.id, osIp(), interactionIdBd);
         } catch (error) {
             console.log(`Erro ao criar Interaction no bd `, parsedData);
 
