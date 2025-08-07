@@ -2,7 +2,8 @@
     "LOCALHOST": {
         "plugin": {
             "port": 3109,
-            "TIMEOUT_INTERACAO_EM_SEGUNDOS": 60
+            "TIMEOUT_INTERACAO_EM_SEGUNDOS": 90,
+            "TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS": 60
         },
         "xcally": {
             "url": "http://localhost:9000",
@@ -21,7 +22,8 @@
     "DEV": {
         "plugin": {
             "port": 3109,
-            "TIMEOUT_INTERACAO_EM_SEGUNDOS": 300
+            "TIMEOUT_INTERACAO_EM_SEGUNDOS": 60,
+            "TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS": 30
         },
         "xcally": {
             "url": "http://localhost:9000",
@@ -29,32 +31,11 @@
             "ID_FILA_PESQUISA_SATISFACAO": 28
         },
         "DATABASE": {
+            "dbname": "chatbotdb",
             "host": "localhost",
-            "port": 3109,
+            "port": 3306,
             "username": "root",
             "password": "T3l3d@t@2022",
-            "name": "motion2"
-        }
-    },
-    "PROD": {
-        "plugin": {
-            "port": 3109,
-            "TIMEOUT_INTERACAO_EM_SEGUNDOS": 180
-        },
-        "xcally": {
-            "url": "http://localhost:9000",
-            "API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI1MzQwMjMwMDgwMCwibm9uY2UiOiI1NDc2ZDNiNDc3YmVkYjNmM2E0YjQ4ZTZhY2UxYTYzYyIsInN1YiI6MSwiaXNzIjoiNzAzNjM4N2MtNTM5MC0zNjY4LTI0MTctNjFmMzUzMjFmOGE4IiwiYXVkIjoiMTNjZWFjMGNjMDdhODFiM2QyMDJhZGJkNGU5YjMwYjFiZWM5NDJmMTY0MTg5ZmQ4NjUwYzEwZTViOWY2YjZlZWU2YThhZjA1N2JlZDgwZGI4YWQ3YTQ3N2VkYTU4OTRkYWMxMjkyZmIyMWRlN2QwNjFiZjU3YTBmMDQ3MjhmNTUiLCIxM2NlYWMwY2MwN2E4MWIzZDIwMmFkYmQ0ZTliMzBiMWJlYzk0MmYxNjQxODlmZDg2NTBjMTBlNWI5ZjZiNmVlZTZhOGFmMDU3YmVkODBkYjhhZDdhNDc3ZWRhNTg5NGRhYzEyOTJmYjIxZGU3ZDA2MWJmNTdhMGYwNDcyOGY1NSI6bnVsbH0.9oy9vodjGuCzRTWx5tlsxH4vffV7keh5rCw9ollHSDs",
-            "ID_FILA_PESQUISA_SATISFACAO": 3
-        },
-        "xcallyServidorAtendimento": {
-            "url": "https://atendimento-mds.centralit.com.br",
-            "API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI1MzQwMjMwMDgwMCwibm9uY2UiOiJjZGE5ZjM4MjU1ZDk3ZDA1ODUxMDE1ZDQzZDA5NWJjZiIsInN1YiI6MSwiaXNzIjoiNzAzNjM4N2MtNTM5MC0zNjY4LTI0MTctNjFmMzUzMjFmOGE4IiwiYXVkIjoiMmYzYjY5MzMyOWE4ZGEzMGU4OTM4ODEwMTg0MmY3ZDRmZDFlOWExYjQzNjFiMmZjYjZjNTFhYWRmYjAxMzI3MzE4ZjFkMWUwYmQzYTEwYTU0NzQ4ZWNhNTI2NTMxNWE5ZDZjNGVhZDY5NmYxMTkyM2IwNjJhZTkxODI3NWM3N2QiLCIyZjNiNjkzMzI5YThkYTMwZTg5Mzg4MTAxODQyZjdkNGZkMWU5YTFiNDM2MWIyZmNiNmM1MWFhZGZiMDEzMjczMThmMWQxZTBiZDNhMTBhNTQ3NDhlY2E1MjY1MzE1YTlkNmM0ZWFkNjk2ZjExOTIzYjA2MmFlOTE4Mjc1Yzc3ZCI6bnVsbH0.K67gf8qerTYDcU65uIjB2oF3JB28m-MrRk6clkVRfiI"
-        },
-        "DATABASE": {
-            "host": "172.19.91.47",
-            "port": 3306,
-            "username": "xcall",
-            "password": "7uR8C}P2UkshwkKZgn!pDhokRMf2hDdS",
             "name": "motion2"
         }
     }

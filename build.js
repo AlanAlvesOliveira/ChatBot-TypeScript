@@ -46,7 +46,7 @@ const createZip = async (zipName, folderName, manifestContent) => {
 
 // Conteúdo do `manifest.json`
 const manifestChat01 = {
-    "name": "novoChatbot",
+    "name": "novo-chatbot",
     "version": "1.0.1",
     "description": "todo - localização do código",
     "author": {
@@ -57,8 +57,8 @@ const manifestChat01 = {
     "type": "script",
     "sidebar": "adminOnly",
     "parameters": {
-        "scriptName": "novoChatbot",
-        "scriptPath": "server/index.js",
+        "scriptName": "novo-chatbot",
+        "scriptPath": "server/app.js",
         "views": {
             "admin": "client/admin/index.html"
         }
@@ -68,8 +68,8 @@ const manifestChat01 = {
 // Gera o arquivo zip
 (async () => {
     try {
-        const outputPath = await createZip('novoChatbot.zip', 'novoChatbot', manifestChat01);
-        console.log('Arquivo novoChatbot.zip criado com sucesso na pasta dist!');
+        const outputPath = await createZip('novo-chatbot.zip', 'novo-chatbot', manifestChat01);
+        console.log('Arquivo novo-chatbot.zip criado com sucesso na pasta dist!');
         console.log('outputPath ', outputPath);
 
     } catch (err) {

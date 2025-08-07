@@ -14,12 +14,30 @@ export default class ParsedHandle {
             // Criando um objeto a partir da string (query string style)
             const params = new URLSearchParams(value);
 
+
             // Extraindo os valores corretamente
-            const accountId = params.get("accountId") ?? "";
-            const contactId = params.get("contactId") ?? "";
-            const interactionId = params.get("interactionId") ?? "";
-            const messageFromClient = params.get("message") ?? "inicio pesquisa satisfação";
-            const contactPhone = params.get("contactPhone") ?? undefined;
+            let accountId = params.get("accountId") ?? "";
+            if (!accountId) {
+                accountId = params.get("AccountId") ?? "";
+            }
+            let contactId = params.get("contactId") ?? "";
+            if (!contactId) {
+                contactId = params.get("ContactId") ?? "";
+            }
+            let interactionId = params.get("interactionId") ?? "";
+            if (!interactionId) {
+                interactionId = params.get("InteractionId") ?? "";
+            }
+            let messageFromClient = params.get("message") ?? "teste";
+
+            if (!messageFromClient) {
+                messageFromClient = params.get("Message") ?? "";
+            }
+
+            let contactPhone = params.get("contactPhone") ?? undefined;
+            if (!contactPhone) {
+                contactPhone = params.get("telefone") ?? undefined;
+            }
 
             // Verificando se há campos obrigatórios ausentes
             const requiredFields = { accountId, contactId, interactionId, messageFromClient };

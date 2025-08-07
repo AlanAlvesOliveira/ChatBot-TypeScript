@@ -13,7 +13,7 @@ import { osIp } from "../utils/osIp";
 
 export default class Session {
 
-    private interactionIdBd: number;
+    public interactionIdBd: number;
     private parsedData: ParsedData;
 
     private SESSION_TIMEOUT_DURATION: number;
@@ -29,19 +29,12 @@ export default class Session {
 
         this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS = getConfiguration().plugin.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS * 1000;
         this.SESSION_TIMEOUT_DURATION = getConfiguration().plugin.TIMEOUT_INTERACAO_EM_SEGUNDOS * 1000;
-        if (this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS < this.SESSION_TIMEOUT_DURATION) {
+        if (this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS > this.SESSION_TIMEOUT_DURATION) {
             throw new Error("❌ TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS < SESSION_TIMEOUT_DURATION ")
         }
 
         if (ipServidor === osIp()) {
             this.salvarEmMemoria = true;
-            this.sessionAlertTimeout = setTimeout(async () => {
-                await this.enviaAvisoTimeout();
-            }, this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS);
-
-            this.sessionTimeout = setTimeout(async () => {
-                await this.encerraSessionPorTimeout();
-            }, this.SESSION_TIMEOUT_DURATION);
         }
     }
 
@@ -70,13 +63,11 @@ export default class Session {
             interactionFromBd?.sessionStatus !== "end" &&
             interactionFromBd?.enviouAlertaFaltaInteracao
         ) {
-            await XcallyApiService.SendMessage(this, 'Conversa encerrada por falta de interação.');
-            await delay(300); // Adiciona um pequeno delay antes de fechar a interação
-            await XcallyApiService.CloseInteration(this);
             interactionFromBd.sessionStatus = "timeout";
             await interactionFromBd.save();
+            this.close("TIMEOUT", "Conversa encerrada por falta de interação");
         }
-        SessionManager.endSession(this);
+
     }
 
 
@@ -99,7 +90,7 @@ export default class Session {
                 composedSessionId: parsedData.composedSessionId,
                 accountId: parsedData.accountId,
                 contactId: parsedData.contactId,
-                tipoFila: "tipo fila",
+                tipoFila: "CHATBOT",
                 sessionStatus: currentStep.stepId,
                 statusAntigo: "",
                 messageId: "",
@@ -109,7 +100,7 @@ export default class Session {
                 //id: "", auto gerado pelo bd
                 enviouAlertaFaltaInteracao: false,
                 countAnswerError: 0,
-                channelOrigem: "",
+                channelOrigem: "OpenChannel",
                 citsmart: "{}",
                 beneficiario: "{}",
             });
@@ -128,7 +119,7 @@ export default class Session {
         this.parsedData = data;
     }
 
-    public async resetTimeout(): Promise<void> {
+    public async startResetTimeout(): Promise<void> {
 
         // Limpa o timeout anterior, se existir
         if (this.sessionTimeout) {
@@ -141,40 +132,46 @@ export default class Session {
         }
 
         // Busca o tempo da última interação no banco de dados
-        let interactionFromBd = await Interaction.findByPk(this.parsedData.interactionId);
+        let interactionFromBd = await Interaction.findByPk(this.interactionIdBd);
+
+        console.log(`-> chamando startResetTimeout para ${interactionFromBd}`);
 
         if (!interactionFromBd) throw new Error('session não encontrada no bd');
 
-        if (interactionFromBd.ipServidor !== osIp()) {
-            //não faz nada pois já está sendo gerida por outro app
-            return;
+        interactionFromBd.enviouAlertaFaltaInteracao = false;
+        interactionFromBd.save();
+
+        if (interactionFromBd.ipServidor === osIp()) {
+
+            this.sessionAlertTimeout = setTimeout(async () => {
+                await this.enviaAvisoTimeout();
+            }, this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS);
+
+            this.sessionTimeout = setTimeout(async () => {
+                await this.encerraSessionPorTimeout();
+            }, this.SESSION_TIMEOUT_DURATION);
         }
-
-        this.sessionAlertTimeout = setTimeout(async () => {
-            await this.enviaAvisoTimeout();
-        }, this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS);
-
-        this.sessionTimeout = setTimeout(async () => {
-            await this.encerraSessionPorTimeout();
-        }, this.SESSION_TIMEOUT_DURATION);
     }
 
     public getSessionData(): ParsedData {
         return this.parsedData;
     }
 
-    public async close() {
+    public async close(motivo: string, mensagem?: string) {
         if (this.sessionTimeout) clearTimeout(this.sessionTimeout);
         if (this.sessionAlertTimeout) clearTimeout(this.sessionAlertTimeout);
 
         let interactionFromBd = await Interaction.findByPk(this.interactionIdBd);
 
         if (interactionFromBd) {
-            await XcallyApiService.SendMessage(this, 'Conversa encerrada.');
+            if (mensagem) {
+                await XcallyApiService.SendMessage(this, mensagem);
+            }
             await delay(300); // Adiciona um pequeno delay antes de fechar a interação
             await XcallyApiService.CloseInteration(this);
-            interactionFromBd.sessionStatus = "end";
+            interactionFromBd.sessionStatus = motivo;
             await interactionFromBd.save();
+            SessionManager.cleanSessionFromMemoria(this);
         }
     }
 
@@ -198,10 +195,8 @@ export default class Session {
             if (interactionFromBd.countAnswerError > tentativas) {
                 maximoTentativasAtingido = true
 
-                this.close();
-                await XcallyApiService.SendMessage(this, 'Conversa encerrada, por exceder máximo de tentativas.');
-                await delay(300); // Adiciona um pequeno delay antes de fechar a interação
-                await XcallyApiService.CloseInteration(this);
+                this.close('MÁXIMO TENTATIVAS', 'Conversa encerrada, por exceder máximo de tentativas.');
+
                 interactionFromBd.sessionStatus == "Máximo de Tentativas Atingido.";
             } else {
                 interactionFromBd.countAnswerError++;

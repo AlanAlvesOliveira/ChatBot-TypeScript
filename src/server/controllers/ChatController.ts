@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import ChatService from "../services/ChatService";
 import SessionManager from "../services/SessionManager";
 import ParsedHandle from "../utils/parsedDataFromXcallyHandle";
@@ -9,8 +9,11 @@ export default class ChatController {
 
         try {
 
+
             const parsedData = ParsedHandle.parsedDataHandleFromValue(req);
+            console.log('sendChatInteraction -> ', parsedData);
             await ChatService.flow(parsedData);
+            res.status(200).send("sucesso");
 
         } catch (error: any) {
             console.log("ERROR: ", error);

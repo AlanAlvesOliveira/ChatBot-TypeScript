@@ -85,10 +85,9 @@ async function createConnection(
     // if (!DB_DIALECT || !DB_PORT) {
     //     throw new Error('DB_DIALECT ou DB_PORT vazio');
     // }
-    const validatedDialect = "msysql" as Dialect;
+    const validatedDialect = "mysql" as Dialect;
 
     const instance = new Sequelize({
-        timezone: 'America/Sao_Paulo', // Configura o timezone
         dialect: validatedDialect,
         host,
         database,

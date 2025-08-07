@@ -9,20 +9,15 @@ const flow: Flow = {
             stepId: '1',
             respostasValidas: undefined,
             actions: [
-                {
-                    type: 'sendMessage',
-                    params: ['Bem vindo, como posso ajudar?']
-                }
+                { type: 'enviaMensagem', params: ['Bem vindo, como posso ajudar?'] },
+                { type: 'atualizaStatusStep', params: ['2'] }
             ]
         },
         {
             stepId: '2',
             respostasValidas: undefined,
             actions: [
-                {
-                    type: 'sendMessage',
-                    params: ['Menu de opções 2']
-                }
+                { type: 'enviaMensagem', params: ['Menu de opções 2'] }
             ]
         }
     ],
