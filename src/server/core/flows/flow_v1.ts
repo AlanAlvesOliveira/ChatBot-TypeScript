@@ -5,20 +5,7 @@ const flow: Flow = {
     idFlow: '1',
     nome: 'flow_documento',
     steps: [
-        {
-            stepId: 'end',
-            respostasValidas: undefined,
-            actions: [
-                { type: 'encerrarInteracao', params: [] }
-            ]
-        },
-        {
-            stepId: 'queue',
-            respostasValidas: undefined,
-            actions: [
-                { type: 'encaminharFila', params: ["queue"] }
-            ]
-        },
+
         {
             stepId: '1',
             respostasValidas: [
@@ -331,6 +318,20 @@ Digite *1* para *SIM*
 Digite *2* para *NÃO*`]
                 },
                 { type: 'aguardaResposta', params: [] }
+            ]
+        },
+        {
+            stepId: 'end',
+            respostasValidas: undefined,
+            actions: [
+                { type: 'encerrarInteracao', params: [] }
+            ]
+        },
+        {
+            stepId: 'queue',
+            respostasValidas: undefined,
+            actions: [
+                { type: 'encaminharFila', params: ["queue"] }
             ]
         },
 

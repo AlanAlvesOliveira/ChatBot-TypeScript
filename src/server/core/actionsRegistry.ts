@@ -1,14 +1,10 @@
-import { where } from 'sequelize';
-import { HttpStatusCode } from './../../../node_modules/axios/index.d';
-// src/core/actionsRegistry.ts
-import { Interaction } from "../models/InteractionSession";
+import { Result } from './../../../node_modules/rimraf/node_modules/glob/dist/commonjs/walker.d';
 import XcallyApiService from "../services/XcallyApiService";
 import Session from "./Session";
+import { ResultAction } from '../interfaces/ResultAction';
 
 
-// src/core/actionsRegistry.ts
-type ActionHandler = (session: Session, params?: any) => Promise<void>;
-
+type ActionHandler = (session: Session, params?: any) => Promise<ResultAction>;
 
 
 interface ActionRegistry {
@@ -17,22 +13,19 @@ interface ActionRegistry {
 
 const actionRegistry: ActionRegistry = {
     "enviaMensagem": async (session, args) => {
-        await XcallyApiService.SendMessage(session, args[0]);
+        return await XcallyApiService.SendMessage("enviaMensagem", session, args[0]);
     },
     "atualizaStatusStep": async (session, args) => {
-        await session.updateStatusInBd(args[0])
+        return await session.updateStatusInBd(args[0])
     },
     "aguardaResposta": async (session, args) => {
-        session.sessionDb.aguardandoResposta = true;
-        await session.sessionDb.save();
+        return await session.updateAguardandoResposta(true);
     },
     "encerrarInteracao": async (session, args) => {
-        session.close('end', "Obrigado por entrar em contato. Este atendimento foi encerrado.");
+        return session.closeInteractionAndRemoveSession('end', "Obrigado por entrar em contato. Este atendimento foi encerrado.");
     },
     "encaminharFila": async (session, args) => {
-        session.clearTimeoutsAndRemoveFromMemory();
-        await session.updateStatusInBd(args[0])
-        await XcallyApiService.SendMessage(session, "Encaminhando para Fila pelo bot", true);
+        return await session.encaminhaFila(args[0]);
     },
 };
 

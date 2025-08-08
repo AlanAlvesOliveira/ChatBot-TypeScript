@@ -1,15 +1,15 @@
 import Session from "../core/Session";
 import axios from "axios";
 import { getConfiguration } from "../utils/loadConfiguration";
+import SessionManager from "./SessionManager";
+import { ResultAction } from "../interfaces/ResultAction";
 
 const configJson = getConfiguration();
 
 export default class XcallyApiService {
 
-    static async SendMessage(sessionData: Session, msg: string, secret: boolean = false): Promise<void> {
-
+    static async SendMessage(context: string, sessionData: Session, msg: string, secret: boolean = false): Promise<ResultAction> {
         try {
-
             const data = {
                 body: msg,
                 OpenchannelAccountId: sessionData.getSessionData().accountId,
@@ -34,14 +34,50 @@ export default class XcallyApiService {
             };
 
             const response = await axios.request(config);
+            return { success: true };
+
         } catch (error) {
-            console.log('[ERR] SendMessage', error);
+            // Tratamento para erros do Axios
+            if (axios.isAxiosError(error)) {
+                // Erro 500 com mensagem específica de constraint
+                if (error.response?.status === 500 &&
+                    error.response?.data?.message?.includes('foreign key constraint fails')) {
+                    // console.error('[ERR] SendMessage - Foreign key constraint violation:', {
+                    //     code: error.response?.data?.code,
+                    //     message: error.response?.data?.message,
+                    //     details: error.response?.data?.details
+                    // });
+                    sessionData.clearTimeoutsAndRemoveFromMemory(`${context} erro SendMessage `);
+                    return {
+                        success: false,
+                        error: 'Database constraint violation'
+                    };
+                }
+
+                // Outros erros HTTP
+                console.error('[ERR] SendMessage - API Error:', {
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    config: error.config
+                });
+                return {
+                    success: false,
+                    error: error.response?.data?.message || 'API request failed'
+                };
+            }
+
+            // Erros não relacionados ao Axios
+            console.error('[ERR] SendMessage - Unexpected error:', error);
+            return {
+                success: false,
+                error: 'Unexpected error occurred'
+            };
         }
     }
 
 
 
-    static async CloseInteration(sessionData: Session) {
+    static async CloseInteration(context: string, sessionData: Session) {
 
         try {
 
@@ -59,7 +95,40 @@ export default class XcallyApiService {
 
             const response = await axios.request(config);
         } catch (error) {
-            console.log('[ERR] CloseInteration ', sessionData.getSessionData().composedSessionId)
+            if (axios.isAxiosError(error)) {
+                // Erro 500 com mensagem específica de constraint
+                if (error.response?.status === 500 &&
+                    error.response?.data?.message?.includes('foreign key constraint fails')) {
+                    // console.error('[ERR] SendMessage - Foreign key constraint violation:', {
+                    //     code: error.response?.data?.code,
+                    //     message: error.response?.data?.message,
+                    //     details: error.response?.data?.details
+                    // });
+                    sessionData.clearTimeoutsAndRemoveFromMemory(`${context} erro CloseInteration `);
+                    return {
+                        success: false,
+                        error: 'Database constraint violation'
+                    };
+                }
+
+                // Outros erros HTTP
+                console.error('[ERR] SendMessage - API Error:', {
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    config: error.config
+                });
+                return {
+                    success: false,
+                    error: error.response?.data?.message || 'API request failed'
+                };
+            }
+
+            // Erros não relacionados ao Axios
+            console.error('[ERR] SendMessage - Unexpected error:', error);
+            return {
+                success: false,
+                error: 'Unexpected error occurred'
+            };
         }
     }
 

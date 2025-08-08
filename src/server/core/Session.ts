@@ -9,12 +9,13 @@ import { Interaction } from "../models/InteractionSession";
 import steps from "./flows/flow_v1"
 import { where } from "sequelize";
 import { osIp } from "../utils/osIp";
+import { ResultAction } from "../interfaces/ResultAction";
 
 export default class Session {
 
 
     public interactionIdBd: number;
-    private parsedData: ParsedData;
+    public parsedData: ParsedData;
     public sessionDb: Interaction
 
     private SESSION_TIMEOUT_DURATION: number;
@@ -48,10 +49,10 @@ export default class Session {
             interactionFromBd?.sessionStatus !== "end" &&
             !interactionFromBd?.enviouAlertaFaltaInteracao
         ) {
+            clearTimeout(this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS);
             interactionFromBd.enviouAlertaFaltaInteracao = true;
             await interactionFromBd.save();
-            await XcallyApiService.SendMessage(this, 'Alerta de falta de interação ');
-            clearTimeout(this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS);
+            await XcallyApiService.SendMessage("enviaAvisoTimeout", this, 'Alerta de falta de interação ');
         }
 
     }
@@ -67,7 +68,7 @@ export default class Session {
         ) {
             interactionFromBd.sessionStatus = "timeout";
             await interactionFromBd.save();
-            this.close("timeout", "Conversa encerrada por falta de interação");
+            this.closeInteractionAndRemoveSession("timeout", "Conversa encerrada por falta de interação");
         }
 
     }
@@ -121,12 +122,55 @@ export default class Session {
         this.parsedData = data;
     }
 
-    public async updateStatusInBd(newStatus: string) {
-        this.sessionDb.statusAntigo = this.sessionDb.sessionStatus;
-        this.sessionDb.sessionStatus = newStatus;
-        this.sessionDb.aguardandoResposta = false;
-        this.sessionDb.lastInteractionDate = new Date();
-        await this.sessionDb.save();
+    public async updateStatusInBd(newStatus: string): Promise<ResultAction> {
+        try {
+            this.sessionDb.statusAntigo = this.sessionDb.sessionStatus;
+            this.sessionDb.sessionStatus = newStatus;
+            this.sessionDb.aguardandoResposta = false;
+            this.sessionDb.lastInteractionDate = new Date();
+            await this.sessionDb.save();
+
+            return { success: true };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message :
+                typeof error === 'string' ? error :
+                    'Erro desconhecido ao updateStatusInBd';
+            return { success: false, error: errorMessage };
+        }
+
+    }
+
+    public async encaminhaFila(novoStatus: string): Promise<ResultAction> {
+        try {
+            this.clearTimeoutsAndRemoveFromMemory("encaminharFila");
+            await this.updateStatusInBd(novoStatus);
+            await XcallyApiService.SendMessage("encaminharFila", this, "Encaminhando para Fila pelo bot", true);
+            return { success: true }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message :
+                typeof error === 'string' ? error :
+                    'Erro desconhecido ao updateStatusInBd';
+            return { success: false, error: errorMessage };
+        }
+
+    }
+
+    public async updateAguardandoResposta(newValue: boolean): Promise<ResultAction> {
+        try {
+            this.sessionDb.aguardandoResposta = newValue;
+            await this.sessionDb.save();
+            return { success: true };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message :
+                typeof error === 'string' ? error :
+                    'Erro desconhecido ao updateAguardandoResposta';
+
+            console.error('[ERRO] updateAguardandoResposta:', errorMessage);
+            return {
+                success: false,
+                error: errorMessage
+            };
+        }
     }
 
     public async startResetTimeout(): Promise<void> {
@@ -169,25 +213,40 @@ export default class Session {
         return this.parsedData;
     }
 
-    public async close(motivo: string, mensagem?: string) {
-        if (this.sessionTimeout) clearTimeout(this.sessionTimeout);
-        if (this.sessionAlertTimeout) clearTimeout(this.sessionAlertTimeout);
+    public async closeInteractionAndRemoveSession(statusFinal: string, mensagem?: string): Promise<ResultAction> {
+        try {
+            if (this.sessionTimeout) clearTimeout(this.sessionTimeout);
+            if (this.sessionAlertTimeout) clearTimeout(this.sessionAlertTimeout);
 
-        let interactionFromBd = await Interaction.findByPk(this.interactionIdBd);
+            let interactionFromBd = await Interaction.findByPk(this.interactionIdBd);
 
-        if (interactionFromBd) {
-            if (mensagem) {
-                await XcallyApiService.SendMessage(this, mensagem);
+            if (interactionFromBd) {
+                if (mensagem) {
+                    await XcallyApiService.SendMessage("close", this, mensagem);
+                }
+                await delay(300); // Adiciona um pequeno delay antes de fechar a interação
+                await XcallyApiService.CloseInteration(`closeInteractionAndRemoveSession - ${statusFinal}`, this);
+                interactionFromBd.sessionStatus = statusFinal;
+                await interactionFromBd.save();
+                SessionManager.cleanSessionFromMemoria(this, "closeInteractionAndRemoveSession");
             }
-            await delay(300); // Adiciona um pequeno delay antes de fechar a interação
-            await XcallyApiService.CloseInteration(this);
-            interactionFromBd.sessionStatus = motivo;
-            await interactionFromBd.save();
-            SessionManager.cleanSessionFromMemoria(this);
+
+            return { success: true };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message :
+                typeof error === 'string' ? error :
+                    'Erro desconhecido ao closeInteractionAndRemoveSession';
+
+            console.error('[ERRO] closeInteractionAndRemoveSession:', errorMessage);
+            return {
+                success: false,
+                error: errorMessage
+            };
+
         }
     }
 
-    public clearTimeoutsAndRemoveFromMemory() {
+    public clearTimeoutsAndRemoveFromMemory(context: string) {
 
         if (this.sessionTimeout) {
             clearTimeout(this.sessionTimeout);
@@ -197,7 +256,7 @@ export default class Session {
             clearTimeout(this.sessionAlertTimeout);
             this.sessionAlertTimeout = null;
         }
-        SessionManager.cleanSessionFromMemoria(this);
+        SessionManager.cleanSessionFromMemoria(this, context);
     }
 
     public async getCurrentStep(): Promise<StoredStep> {

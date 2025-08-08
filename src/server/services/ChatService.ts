@@ -33,9 +33,9 @@ export default class ChatService {
                 await session.sessionDb.save();
 
                 if (session.sessionDb.countAnswerError > 3) {
-                    session.close('EXCESSO TENTATIVAS', 'Esta interação será encerrada por exesso de tentativas!');
+                    session.closeInteractionAndRemoveSession('EXCESSO TENTATIVAS', 'Esta interação será encerrada por exesso de tentativas!');
                 } else {
-                    await XcallyApiService.SendMessage(session, "Resposta inválida!");
+                    await XcallyApiService.SendMessage("flow - aguardandoResposta", session, "Resposta inválida!");
                 }
             }
         }
@@ -44,18 +44,21 @@ export default class ChatService {
 
         if (!session.sessionDb.aguardandoResposta) {
             for (const action of currentStep.actions) {
-                console.log(`-> Action interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId} action:${action.type}  `)
+
                 try {
                     const actionHandler = actionRegistry[action.type];
                     if (actionHandler) {
-                        await actionHandler(session, action.params);
-                        await new Promise(resolve => setTimeout(resolve, 500));
+                        const result = await actionHandler(session, action.params);
+                        console.log(`-> Action {interactionIdBd:${session.interactionIdBd}} {composedSessionId:${session.parsedData.composedSessionId}} {stepId:${currentStep.stepId}} {action:${action.type}} sucesso: ${JSON.stringify(result)}}'} `)
+                        let timeout = action.type === 'enviaMensagem' ? 1000 : 500;
+                        await new Promise(resolve => setTimeout(resolve, timeout));
                     } else {
                         console.error(`Tipo de ação não suportado: ${action.type}`);
                     }
                 } catch (error) {
                     console.error(`Erro ao executar ação ${action.type}:`, error);
                 }
+
             }
         }
 

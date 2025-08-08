@@ -24,14 +24,14 @@ export default class SessionManager {
         return currentSession;
     }
 
-    public static cleanSessionFromMemoria(sessionData: Session) {
+    public static cleanSessionFromMemoria(sessionData: Session, string: string) {
 
         const sessionId = sessionData.getSessionData().composedSessionId
 
         const session = this.sessions.get(sessionId);
 
         if (session) {
-            console.log(`🗑️ Encerrando sessão an memoria: ${sessionId}`);
+            console.log(`🗑️ Encerrando sessão an memoria: ${sessionId}, context: ${string}`);
             this.sessions.delete(sessionId);
         } else {
             console.warn(`⚠️ Tentativa de remover uma sessão inexistente: ${sessionId}`);
