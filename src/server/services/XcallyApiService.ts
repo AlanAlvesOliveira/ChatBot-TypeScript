@@ -6,7 +6,7 @@ const configJson = getConfiguration();
 
 export default class XcallyApiService {
 
-    static async SendMessage(sessionData: Session, msg: string): Promise<void> {
+    static async SendMessage(sessionData: Session, msg: string, secret: boolean = false): Promise<void> {
 
         try {
 
@@ -15,7 +15,7 @@ export default class XcallyApiService {
                 OpenchannelAccountId: sessionData.getSessionData().accountId,
                 OpenchannelInteractionId: sessionData.getSessionData().interactionId,
                 direction: "out",
-                secret: false,
+                secret,
                 UserId: null,
                 sentBy: "auto_routing",
                 ContactId: sessionData.getSessionData().contactId,

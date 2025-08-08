@@ -18,7 +18,7 @@ export default class SessionManager {
                 this.sessions.set(sessionId, currentSession);
             }
         } else {
-            currentSession.updateParsedData(data);
+            currentSession.updateParsedDataInMemory(data);
         }
 
         return currentSession;

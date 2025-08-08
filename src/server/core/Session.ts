@@ -12,6 +12,7 @@ import { osIp } from "../utils/osIp";
 
 export default class Session {
 
+
     public interactionIdBd: number;
     private parsedData: ParsedData;
     public sessionDb: Interaction
@@ -66,7 +67,7 @@ export default class Session {
         ) {
             interactionFromBd.sessionStatus = "timeout";
             await interactionFromBd.save();
-            this.close("TIMEOUT", "Conversa encerrada por falta de interação");
+            this.close("timeout", "Conversa encerrada por falta de interação");
         }
 
     }
@@ -116,8 +117,16 @@ export default class Session {
         }
     }
 
-    public updateParsedData(data: ParsedData) {
+    public updateParsedDataInMemory(data: ParsedData) {
         this.parsedData = data;
+    }
+
+    public async updateStatusInBd(newStatus: string) {
+        this.sessionDb.statusAntigo = this.sessionDb.sessionStatus;
+        this.sessionDb.sessionStatus = newStatus;
+        this.sessionDb.aguardandoResposta = false;
+        this.sessionDb.lastInteractionDate = new Date();
+        await this.sessionDb.save();
     }
 
     public async startResetTimeout(): Promise<void> {
@@ -154,6 +163,8 @@ export default class Session {
         }
     }
 
+
+
     public getSessionData(): ParsedData {
         return this.parsedData;
     }
@@ -176,6 +187,19 @@ export default class Session {
         }
     }
 
+    public clearTimeoutsAndRemoveFromMemory() {
+
+        if (this.sessionTimeout) {
+            clearTimeout(this.sessionTimeout);
+            this.sessionTimeout = null;
+        }
+        if (this.sessionAlertTimeout) {
+            clearTimeout(this.sessionAlertTimeout);
+            this.sessionAlertTimeout = null;
+        }
+        SessionManager.cleanSessionFromMemoria(this);
+    }
+
     public async getCurrentStep(): Promise<StoredStep> {
         let interactionFromBd = await Interaction.findByPk(this.interactionIdBd);
 
@@ -192,26 +216,4 @@ export default class Session {
             throw new Error('[ERRO] Step não encontrado!');
         }
     }
-
-    public async addCountErrorAndTest(tentativas: number): Promise<boolean> {
-
-        let interactionFromBd = await Interaction.findByPk(this.interactionIdBd);
-        let maximoTentativasAtingido = false;
-        if (interactionFromBd) {
-            if (interactionFromBd.countAnswerError > tentativas) {
-                maximoTentativasAtingido = true
-
-                this.close('MÁXIMO TENTATIVAS', 'Conversa encerrada, por exceder máximo de tentativas.');
-
-                interactionFromBd.sessionStatus == "Máximo de Tentativas Atingido.";
-            } else {
-                interactionFromBd.countAnswerError++;
-            }
-        }
-        return maximoTentativasAtingido;
-    }
-
-
-
-
 }

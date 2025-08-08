@@ -9,8 +9,8 @@ export default class ChatController {
 
         try {
             const parsedData = ParsedHandle.parsedDataHandleFromValue(req);
-            await ChatService.flow(parsedData);
-            res.status(200).send("sucesso");
+            const response = await ChatService.flow(parsedData);
+            res.status(200).send(response);
 
         } catch (error: any) {
             console.log("ERROR: ", error);

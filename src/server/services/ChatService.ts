@@ -4,7 +4,7 @@ import actionRegistry from "../core/actionsRegistry";
 import XcallyApiService from "./XcallyApiService";
 
 export default class ChatService {
-    static async flow(data: ParsedData): Promise<void> {
+    static async flow(data: ParsedData): Promise<string> {
 
         const session = await SessionManager.createOrGetSession(data);
         await session.startResetTimeout();
@@ -13,23 +13,20 @@ export default class ChatService {
 
         if (session.sessionDb.aguardandoResposta) {
 
-            console.log(`Executando ${session.interactionIdBd} aguardando Resposta no flow`);
+            console.log(`-> Esperando resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
 
             if (!currentStep.respostasValidas) throw new Error('Esperando resposta, porém não foi localizada no fluxo resposta válidas');
 
             const respostaUser = session.getSessionData().messageFromClient?.trim();
-
             const achouResposta = currentStep.respostasValidas.find(item => item.respostaValue === respostaUser);
 
             if (achouResposta) {
-
                 session.sessionDb.statusAntigo = session.sessionDb.sessionStatus;
                 session.sessionDb.sessionStatus = achouResposta.nextStepId;
                 session.sessionDb.aguardandoResposta = false;
                 await session.sessionDb.save();
-
+                //atualiza o step
                 currentStep = await session.getCurrentStep();
-
             } else {
 
                 session.sessionDb.countAnswerError++;
@@ -44,17 +41,14 @@ export default class ChatService {
         }
 
 
+
         if (!session.sessionDb.aguardandoResposta) {
             for (const action of currentStep.actions) {
-
-                console.log(`Executando interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId} action:${action.type}  `)
-
+                console.log(`-> Action interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId} action:${action.type}  `)
                 try {
-                    // Verificação de tipo segura
-                    const handler = actionRegistry[action.type];
-                    if (handler) {
-
-                        await handler(session, action.params);
+                    const actionHandler = actionRegistry[action.type];
+                    if (actionHandler) {
+                        await actionHandler(session, action.params);
                         await new Promise(resolve => setTimeout(resolve, 500));
                     } else {
                         console.error(`Tipo de ação não suportado: ${action.type}`);
@@ -64,5 +58,9 @@ export default class ChatService {
                 }
             }
         }
+
+        console.log('%%%%%%%%% ', session.sessionDb.sessionStatus);
+
+        return session.sessionDb.sessionStatus;
     }
 }

@@ -20,14 +20,19 @@ const actionRegistry: ActionRegistry = {
         await XcallyApiService.SendMessage(session, args[0]);
     },
     "atualizaStatusStep": async (session, args) => {
-        await Interaction.update(
-            { sessionStatus: args[0] },
-            { where: { id: session.interactionIdBd } }
-        )
+        await session.updateStatusInBd(args[0])
     },
     "aguardaResposta": async (session, args) => {
         session.sessionDb.aguardandoResposta = true;
         await session.sessionDb.save();
+    },
+    "encerrarInteracao": async (session, args) => {
+        session.close('end', "Obrigado por entrar em contato. Este atendimento foi encerrado.");
+    },
+    "encaminharFila": async (session, args) => {
+        session.clearTimeoutsAndRemoveFromMemory();
+        await session.updateStatusInBd(args[0])
+        await XcallyApiService.SendMessage(session, "Encaminhando para Fila pelo bot", true);
     },
 };
 
