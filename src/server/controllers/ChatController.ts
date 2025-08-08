@@ -9,7 +9,6 @@ export default class ChatController {
 
         try {
             const parsedData = ParsedHandle.parsedDataHandleFromValue(req);
-            console.log('sendChatInteraction -> ', parsedData);
             await ChatService.flow(parsedData);
             res.status(200).send("sucesso");
 

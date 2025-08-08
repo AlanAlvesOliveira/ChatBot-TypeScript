@@ -40,6 +40,10 @@ export class Interaction extends Model {
     @Column(DataType.STRING(10))
     tipoFila!: string;
 
+    @AllowNull(false)
+    @Default(false)
+    @Column(DataType.BOOLEAN)
+    aguardandoResposta!: boolean;
 
     @AllowNull(true)
     @Default(false)

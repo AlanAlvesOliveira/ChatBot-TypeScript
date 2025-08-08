@@ -1,4 +1,3 @@
-
 import ParsedData from "../interfaces/ParsedData";
 
 import { getConfiguration } from "../utils/loadConfiguration"
@@ -117,7 +116,7 @@ export default class Session {
         }
     }
 
-    public updateData(data: ParsedData) {
+    public updateParsedData(data: ParsedData) {
         this.parsedData = data;
     }
 
@@ -181,8 +180,13 @@ export default class Session {
         let interactionFromBd = await Interaction.findByPk(this.interactionIdBd);
 
         if (interactionFromBd) {
-            return steps.steps.find(x => x.stepId === interactionFromBd.sessionStatus)
-                ?? (() => { throw new Error("❌ Nenhum passo inicial encontrado no fluxo!") })();
+
+            const novoStep = steps.steps.find(x => x.stepId === interactionFromBd.sessionStatus)
+                ?? (() => { throw new Error("❌ Nenhum encontrado no fluxo!") })();
+
+            console.log(`--> getCurrentStep interactionIdBd: ${this.interactionIdBd} , antigo: ${interactionFromBd.statusAntigo ?? 'vazio'}, novo: ${interactionFromBd.sessionStatus}`);
+
+            return novoStep;
         } else {
             console.log('[ERRO] Step não encontrado!');
             throw new Error('[ERRO] Step não encontrado!');

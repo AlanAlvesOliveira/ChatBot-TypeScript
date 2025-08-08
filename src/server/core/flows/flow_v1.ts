@@ -18,7 +18,7 @@ const flow: Flow = {
 Assuntos de consumidor digite 1
 Assuntos de Revenda digite 2`]
                 },
-                { type: 'aguardaResposta', params: ['2'] }
+                { type: 'aguardaResposta', params: [] }
             ]
         },
         {

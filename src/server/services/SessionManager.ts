@@ -17,6 +17,8 @@ export default class SessionManager {
             if (currentSession.salvarEmMemoria) {
                 this.sessions.set(sessionId, currentSession);
             }
+        } else {
+            currentSession.updateParsedData(data);
         }
 
         return currentSession;
