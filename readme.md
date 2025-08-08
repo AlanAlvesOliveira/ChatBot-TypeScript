@@ -5,3 +5,8 @@ provavelmente ele vai tentar fazer um post e vai dar erro, interação já encer
 
 2- ver se a questão de fazer update no sessionStatus e AntigosessonStatus estão sendo repetidos
 
+teste oi
+
+oi,1,1,1 ok
+oi,1,2,1 ok queue
+

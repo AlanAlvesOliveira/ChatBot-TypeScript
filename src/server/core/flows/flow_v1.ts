@@ -334,6 +334,15 @@ Digite *2* para *NÃO*`]
                 { type: 'encaminharFila', params: ["queue"] }
             ]
         },
+        {
+            stepId: 'suporte',
+            respostasValidas: undefined,
+            actions: [
+                { type: 'encaminharFila', params: ["suporte"] }
+            ]
+        },
+
+
 
     ],
     dataCriacao: new Date(),
