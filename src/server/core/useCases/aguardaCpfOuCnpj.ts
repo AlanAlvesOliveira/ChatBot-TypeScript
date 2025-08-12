@@ -11,7 +11,7 @@ export const aguardaCpfOuCnpj = async (session: Session, nextStep: string): Prom
 
     const msg = session.parsedData.messageFromClient;
 
-    if (!cpfValido(msg) || !cnpjValido(msg)) {
+    if (!cpfValido(msg) && !cnpjValido(msg)) {
 
         await XcallyApiService.SendMessage('aguardaCpfOuCnpj', session, `Desculpa, mas o dado informado está 
 invalido.  Vamos tentar novamente?
@@ -28,6 +28,9 @@ para que eu possa consultar seus boletos...`);
         }
         return;
     }
+
+    session.sessionDb.countAnswerError = 0;
+    await session.sessionDb.save();
 
     if (cpfValido(msg)) await session.updateDadosDatabase({ cpf: msg });
     if (cnpjValido(msg)) await session.updateDadosDatabase({ cnpj: msg });
