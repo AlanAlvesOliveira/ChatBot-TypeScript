@@ -1,8 +1,8 @@
+import { aguardaCpfOuCnpj } from './../core/useCases/aguardaCpfOuCnpj';
 import ParsedData from "../interfaces/ParsedData";
 import SessionManager from "./SessionManager";
 import actionRegistry from "../core/actionsRegistry";
-import XcallyApiService from "./XcallyApiService";
-import RespostaValida from "../interfaces/RespostaValida";
+import { validaRespotaUsuario } from "../core/useCases/validaResposta";
 
 export default class ChatService {
     static async flow(data: ParsedData): Promise<string> {
@@ -14,41 +14,35 @@ export default class ChatService {
 
         if (session.sessionDb.aguardandoResposta) {
 
+
+
             console.log(`-> Esperando resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
 
 
-            const respostaUser = session.getSessionData().messageFromClient?.trim();
 
-
-            //const achouResposta = currentStep.respostasValidas.find(item => item.respostaValue === respostaUser);
-            const identificacaoAction = currentStep.actions.find(x => x.type === 'aguardaResposta');
-            if (!identificacaoAction) throw new Error('');
-
-
-
-            //const achouResposta = respostasValidas.find(item => item.respostaValue === respostaUser);
-            const achouResposta = identificacaoAction?.params[0].respostasValidas.find(item => item.respostaValue === respostaUser);
-
-
-            if (achouResposta) {
-                session.sessionDb.statusAntigo = session.sessionDb.sessionStatus;
-                session.sessionDb.sessionStatus = achouResposta.nextStepId;
-                session.sessionDb.aguardandoResposta = false;
-                session.sessionDb.countAnswerError = 0;
-                await session.sessionDb.save();
-                //atualiza o step
-                currentStep = await session.getCurrentStep();
-            } else {
-
-                session.sessionDb.countAnswerError++;
-                await session.sessionDb.save();
-
-                if (session.sessionDb.countAnswerError > 3) {
-                    session.closeInteractionAndRemoveSession('EXCESSO TENTATIVAS', 'Esta interação será encerrada por exesso de tentativas!');
+            const aguardaRespostaAction = currentStep.actions.find(x => x.type === 'aguardaResposta');
+            if (aguardaRespostaAction) {
+                const newStep = await validaRespotaUsuario(session, aguardaRespostaAction);
+                if (!newStep) {
+                    console.log('não foi possível localizar um novo step em aguardaRespostaAction');
                 } else {
-                    await XcallyApiService.SendMessage("flow - aguardandoResposta", session, "Resposta inválida!");
+                    currentStep = newStep;
+                }
+
+            }
+
+            const aguardaCpfOuCnpjAction = currentStep.actions.find(x => x.type === 'aguardaCpfOuCnpj');
+            if (aguardaCpfOuCnpjAction) {
+                const newStep = await aguardaCpfOuCnpj(session, aguardaCpfOuCnpjAction.params.nextStep);
+                if (!newStep) {
+                    console.log('não foi possível localizar um novo step em aguardaRespostaAction');
+                } else {
+                    currentStep = newStep;
                 }
             }
+
+            //const achouResposta = respostasValidas.find(item => item.respostaValue === respostaUser);
+
         }
 
 

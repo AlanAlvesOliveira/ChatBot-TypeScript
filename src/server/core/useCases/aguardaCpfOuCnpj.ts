@@ -1,10 +1,11 @@
 import { ResultAction } from "../../interfaces/ResultAction";
+import { StoredStep } from "../../interfaces/StoredStep";
 import XcallyApiService from "../../services/XcallyApiService";
 import { cnpjValido } from "../../utils/cnpjValido";
 import { cpfValido } from "../../utils/cpfValido";
 import Session from "../Session";
 
-export const aguardaCpfOuCnpj = async (session: Session, nextStep: string): Promise<ResultAction> => {
+export const aguardaCpfOuCnpj = async (session: Session, nextStep: string): Promise<StoredStep | undefined> => {
 
     const msg = session.parsedData.messageFromClient;
 
@@ -42,6 +43,6 @@ para que eu possa consultar seus boletos...`);
 
 
 
-    return { success: true };
+    return undefined;
 
 }

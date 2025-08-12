@@ -1,23 +1,23 @@
 
 export type ActionDefinition = {
     type: 'enviaMensagem';
-    params: [MensagemParams];  // Tuple com exatamente 1 elemento
+    params: MensagemParams;  // Tuple com exatamente 1 elemento
 } | {
     type: 'aguardaResposta';
-    params: [RespostaParams];  // Tuple com exatamente 1 elemento
+    params: RespostaParams;  // Tuple com exatamente 1 elemento
 } | {
     type: 'aguardaCpfOuCnpj';
-    params: [Cpf];
+    params: Cpf;
 } | {
     type: 'encerrarInteracao';
     params: []
 } | {
     type: 'encaminharFila';
-    params: [encaminharFila]
+    params: EncaminharParams
 };
 
 
-interface encaminharFila {
+interface EncaminharParams {
     nomeFila: string;
 }
 
