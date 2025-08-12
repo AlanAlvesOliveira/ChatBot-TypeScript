@@ -7,7 +7,7 @@ const flow: Flow = {
     steps: [
 
         {
-            stepId: '1',
+            stepId: '1', // 0
             actions: [
                 {
                     type: 'enviaMensagem', params: {
@@ -29,7 +29,7 @@ Digite a opção desejada:
             ]
         },
         {
-            stepId: '1_1',
+            stepId: '1_1', // 10
 
             actions: [
                 {
@@ -57,7 +57,7 @@ Digite *9* para *Encerrar seu Atendimento*`}
             ]
         },
         {
-            stepId: '1_1_1',
+            stepId: '1_1_1', // 101
 
             actions: [
                 {
@@ -80,13 +80,14 @@ Digite a opção desejada:
                             { respostaValue: "3", nextStepId: "queue" },
                             { respostaValue: "4", nextStepId: "1_1_1_1" },
                             { respostaValue: "5", nextStepId: "1_1_1_2" },
+                            { respostaValue: "9", nextStepId: "end" },
                         ]
                     }
                 }
             ]
         },
         {
-            stepId: '1_1_1_1',
+            stepId: '1_1_1_1', //1014
 
             actions: [
                 {
@@ -114,7 +115,7 @@ Digite *2* para *NÃO*`}
             ]
         },
         {
-            stepId: '1_1_1_2',
+            stepId: '1_1_1_2', //1015
 
             actions: [
                 {
@@ -144,20 +145,19 @@ Digite *2* para *NÃO*`}
             ]
         },
         {
-            stepId: '1_1_2',
+            stepId: '1_1_2', // 102
             actions: [
                 {
                     type: 'enviaMensagem', params: {
-                        'conteudo': `Você escolheu a opção: *Consumidor/Pós-Vendas e Suporte/Localizar Assistência Técnica ou Revenda Autorizada*
+                        'conteudo': `Você escolheu a opção: *Consumidor/Pós-Vendas e Suporte*
 
-Para localizar uma Assistência Técnica ou Revenda autorizada Husqvarna, acesse o link abaixo e pesquise digitando a Rua, Bairro, Cidade ou Estado da sua preferência para visualizar as autorizadas na região:
+Digite a opção desejada:
 
-https://www.husqvarna.com/br/revendedor/
-
-Sua dúvida foi esclarecida?
-
-Digite *1* para *SIM*
-Digite *2* para *NÃO*`}
+1 - *Agendamento de Entrega Técnica*
+2 - *Localizar Assistência Técnica ou Revenda Autorizada*
+3 - *Garantia*
+4 - *Suporte Técnico*
+5 - *Outros Assuntos*`}
                 },
                 {
                     type: 'aguardaResposta', params: {
@@ -174,7 +174,7 @@ Digite *2* para *NÃO*`}
             ]
         },
         {
-            stepId: '1_1_2_1',
+            stepId: '1_1_2_1', //1022
 
             actions: [
                 {
@@ -202,7 +202,7 @@ Digite *2* para *NÃO*`}
             ]
         },
         {
-            stepId: '1_1_2_2',
+            stepId: '1_1_2_2', //1025
 
             actions: [
                 {
@@ -232,7 +232,7 @@ Digite *2* para *NÃO*`}
             ]
         },
         {
-            stepId: '1_2',
+            stepId: '1_2', //20
 
             actions: [
                 {
@@ -260,7 +260,7 @@ Digite *9* para *Encerrar seu Atendimento*`}
             ]
         },
         {
-            stepId: '1_2_1',
+            stepId: '1_2_1', //201
             actions: [
                 {
                     type: 'enviaMensagem', params: {
@@ -283,7 +283,7 @@ Digite a opção desejada:
             ]
         },
         {
-            stepId: '1_2_2',
+            stepId: '1_2_2', //202
             actions: [
                 {
                     type: 'enviaMensagem', params: {
@@ -338,7 +338,7 @@ Digite a opção desejada:
         //         },
 
         {
-            stepId: '1_2_1_1',
+            stepId: '1_2_1_1', //2011
             actions: [
                 {
                     type: 'enviaMensagem', params: {
@@ -397,7 +397,7 @@ deseja realizar um filtro? Você pode:
             ]
         },
         {
-            stepId: 'PESQUISA_1',
+            stepId: 'PESQUISA_1', //333
 
             actions: [
                 {
@@ -421,7 +421,7 @@ Digite *2* para *NÃO*`}
             ]
         },
         {
-            stepId: 'PESQUISA_2',
+            stepId: 'PESQUISA_2', //201112
 
             actions: [
                 {
