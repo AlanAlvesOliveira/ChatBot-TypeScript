@@ -2,6 +2,7 @@ import ParsedData from "../interfaces/ParsedData";
 import SessionManager from "./SessionManager";
 import actionRegistry from "../core/actionsRegistry";
 import XcallyApiService from "./XcallyApiService";
+import RespostaValida from "../interfaces/RespostaValida";
 
 export default class ChatService {
     static async flow(data: ParsedData): Promise<string> {
@@ -15,15 +16,25 @@ export default class ChatService {
 
             console.log(`-> Esperando resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
 
-            if (!currentStep.respostasValidas) throw new Error('Esperando resposta, porém não foi localizada no fluxo resposta válidas');
 
             const respostaUser = session.getSessionData().messageFromClient?.trim();
-            const achouResposta = currentStep.respostasValidas.find(item => item.respostaValue === respostaUser);
+
+
+            //const achouResposta = currentStep.respostasValidas.find(item => item.respostaValue === respostaUser);
+            const identificacaoAction = currentStep.actions.find(x => x.type === 'aguardaResposta');
+            if (!identificacaoAction) throw new Error('');
+
+
+
+            //const achouResposta = respostasValidas.find(item => item.respostaValue === respostaUser);
+            const achouResposta = identificacaoAction?.params[0].respostasValidas.find(item => item.respostaValue === respostaUser);
+
 
             if (achouResposta) {
                 session.sessionDb.statusAntigo = session.sessionDb.sessionStatus;
                 session.sessionDb.sessionStatus = achouResposta.nextStepId;
                 session.sessionDb.aguardandoResposta = false;
+                session.sessionDb.countAnswerError = 0;
                 await session.sessionDb.save();
                 //atualiza o step
                 currentStep = await session.getCurrentStep();
@@ -39,7 +50,6 @@ export default class ChatService {
                 }
             }
         }
-
 
 
         if (!session.sessionDb.aguardandoResposta) {

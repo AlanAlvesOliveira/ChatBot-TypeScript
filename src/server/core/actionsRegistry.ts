@@ -2,6 +2,9 @@ import { Result } from './../../../node_modules/rimraf/node_modules/glob/dist/co
 import XcallyApiService from "../services/XcallyApiService";
 import Session from "./Session";
 import { ResultAction } from '../interfaces/ResultAction';
+import { aguardaCpfOuCnpj } from './useCases/aguardaCpfOuCnpj';
+
+
 
 
 type ActionHandler = (session: Session, params?: any) => Promise<ResultAction>;
@@ -19,13 +22,19 @@ const actionRegistry: ActionRegistry = {
         return await session.updateStatusInBd(args[0])
     },
     "aguardaResposta": async (session, args) => {
+
         return await session.updateAguardandoResposta(true);
+
     },
     "encerrarInteracao": async (session, args) => {
         return session.closeInteractionAndRemoveSession('end', "Obrigado por entrar em contato. Este atendimento foi encerrado.");
     },
     "encaminharFila": async (session, args) => {
         return await session.encaminhaFila(args[0]);
+    },
+    "aguardaCpfOuCnpj": async (session, args) => {
+        const nextStep: string = args;
+        return await aguardaCpfOuCnpj(session, nextStep)
     },
 };
 

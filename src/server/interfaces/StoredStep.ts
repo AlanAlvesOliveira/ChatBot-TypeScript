@@ -3,6 +3,5 @@ import RespostaValida from "./RespostaValida";
 
 export interface StoredStep {
     stepId: string;
-    respostasValidas?: RespostaValida[];
     actions: ActionDefinition[];
 }

@@ -65,6 +65,10 @@ export class Interaction extends Model {
 
     @AllowNull(true)
     @Column(DataType.TEXT)
+    dadosClient!: string | null;
+
+    @AllowNull(true)
+    @Column(DataType.TEXT)
     citsmart!: string | null;
 
 

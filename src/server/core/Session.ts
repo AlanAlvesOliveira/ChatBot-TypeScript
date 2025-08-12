@@ -1,3 +1,4 @@
+import { response } from 'express';
 import ParsedData from "../interfaces/ParsedData";
 
 import { getConfiguration } from "../utils/loadConfiguration"
@@ -12,6 +13,7 @@ import { osIp } from "../utils/osIp";
 import { ResultAction } from "../interfaces/ResultAction";
 
 export default class Session {
+
 
 
     public interactionIdBd: number;
@@ -121,6 +123,8 @@ export default class Session {
     public updateParsedDataInMemory(data: ParsedData) {
         this.parsedData = data;
     }
+
+
 
     public async updateStatusInBd(newStatus: string): Promise<ResultAction> {
         try {
@@ -273,6 +277,39 @@ export default class Session {
         } else {
             console.log('[ERRO] Step não encontrado!');
             throw new Error('[ERRO] Step não encontrado!');
+        }
+    }
+
+    public async updateDadosDatabase(novosDados: any): Promise<ResultAction> {
+        try {
+            const interactionFromBd = await Interaction.findByPk(this.interactionIdBd);
+            if (!interactionFromBd) {
+                throw new Error("Interação não encontrada para atualização");
+            }
+
+            // Parse dos dados atuais ou objeto vazio se não existir
+            const dadosAtuais = interactionFromBd.dadosClient
+                ? JSON.parse(interactionFromBd.dadosClient)
+                : {};
+
+            // Mescla os novos dados
+            const dadosAtualizados = { ...dadosAtuais, ...novosDados };
+
+            // Atualiza e salva
+            interactionFromBd.dadosClient = JSON.stringify(dadosAtualizados);
+            await interactionFromBd.save();
+
+            return { success: true };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message :
+                typeof error === 'string' ? error :
+                    'Erro ao atualizar dados';
+
+            console.error('[ERRO] updateAguardandoResposta:', errorMessage);
+            return {
+                success: false,
+                error: errorMessage
+            };
         }
     }
 }
