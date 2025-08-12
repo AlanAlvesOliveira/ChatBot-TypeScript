@@ -1,10 +1,10 @@
 
 export type ActionDefinition = {
     type: 'enviaMensagem';
-    params: MensagemParams;  // Tuple com exatamente 1 elemento
+    params: MensagemParams;
 } | {
     type: 'aguardaResposta';
-    params: RespostaParams;  // Tuple com exatamente 1 elemento
+    params: RespostaParams;
 } | {
     type: 'aguardaCpfOuCnpj';
     params: Cpf;

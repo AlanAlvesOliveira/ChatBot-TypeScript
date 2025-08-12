@@ -380,6 +380,7 @@ Digite a opção desejada:
                     type: 'enviaMensagem', params: {
                         'conteudo': `Para facilitar a busca da informação dentro do sistema, você 
 deseja realizar um filtro? Você pode:
+
  1. Consultar um boleto referente à uma NF específica
  2. Consultar boletos por um período
  3. Consultar todos o boletos disponíveis` },

@@ -2,7 +2,7 @@ import { aguardaCpfOuCnpj } from './../core/useCases/aguardaCpfOuCnpj';
 import ParsedData from "../interfaces/ParsedData";
 import SessionManager from "./SessionManager";
 import actionRegistry from "../core/actionsRegistry";
-import { validaRespotaUsuario } from "../core/useCases/validaResposta";
+import { validaRespotaUsuario as validaRespostaUsuario } from "../core/useCases/validaResposta";
 
 export default class ChatService {
     static async flow(data: ParsedData): Promise<string> {
@@ -15,34 +15,30 @@ export default class ChatService {
         if (session.sessionDb.aguardandoResposta) {
 
 
-
-            console.log(`-> Esperando resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
-
-
-
-            const aguardaRespostaAction = currentStep.actions.find(x => x.type === 'aguardaResposta');
-            if (aguardaRespostaAction) {
-                const newStep = await validaRespotaUsuario(session, aguardaRespostaAction);
-                if (!newStep) {
-                    console.log('não foi possível localizar um novo step em aguardaRespostaAction');
-                } else {
-                    currentStep = newStep;
-                }
-
-            }
-
             const aguardaCpfOuCnpjAction = currentStep.actions.find(x => x.type === 'aguardaCpfOuCnpj');
             if (aguardaCpfOuCnpjAction) {
+                console.log(`-> Esperando (aguardaCpfOuCnpjAction) resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
+
                 const newStep = await aguardaCpfOuCnpj(session, aguardaCpfOuCnpjAction.params.nextStep);
                 if (!newStep) {
                     console.log('não foi possível localizar um novo step em aguardaRespostaAction');
                 } else {
                     currentStep = newStep;
                 }
+            } else {
+                const aguardaRespostaAction = currentStep.actions.find(x => x.type === 'aguardaResposta');
+
+                if (aguardaRespostaAction) {
+                    console.log(`-> Esperando (aguardaRespostaAction) resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
+
+                    const newStep = await validaRespostaUsuario(session, aguardaRespostaAction);
+                    if (!newStep) {
+                        console.log('não foi possível localizar um novo step em aguardaRespostaAction');
+                    } else {
+                        currentStep = newStep;
+                    }
+                }
             }
-
-            //const achouResposta = respostasValidas.find(item => item.respostaValue === respostaUser);
-
         }
 
 
