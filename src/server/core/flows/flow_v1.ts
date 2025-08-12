@@ -445,7 +445,7 @@ Digite *2* para *NÃO*`}
         {
             stepId: 'end',
             actions: [
-                { type: 'encerrarInteracao', params: [] }
+                { type: 'encerrarInteracao', params: undefined }
             ]
         },
         {

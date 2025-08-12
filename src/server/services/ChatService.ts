@@ -52,7 +52,7 @@ export default class ChatService {
                 try {
                     const actionHandler = actionRegistry[action.type];
                     if (actionHandler) {
-                        const result = await actionHandler(session, action.params);
+                        const result = await actionHandler(session, action);
                         console.log(`-> Action {interactionIdBd:${session.interactionIdBd}} {composedSessionId:${session.parsedData.composedSessionId}} {stepId:${currentStep.stepId}} {action:${action.type}} sucesso: ${JSON.stringify(result)}}'} `)
                         let timeout = action.type === 'enviaMensagem' ? 1000 : 500;
                         await new Promise(resolve => setTimeout(resolve, timeout));

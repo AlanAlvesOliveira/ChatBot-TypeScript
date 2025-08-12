@@ -10,11 +10,12 @@ export type ActionDefinition = {
     params: Cpf;
 } | {
     type: 'encerrarInteracao';
-    params: []
+    params: undefined;
 } | {
     type: 'encaminharFila';
     params: EncaminharParams
 };
+
 
 
 interface EncaminharParams {
