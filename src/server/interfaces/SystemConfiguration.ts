@@ -13,6 +13,10 @@ export interface SystemConfiguration {
         API_KEY: string;
         ID_OPEN_CHANNEL: number;
     };
+    itau: {
+        url: string;
+        API_KEY: string;
+    }
 
 
     DATABASE: {

@@ -465,18 +465,34 @@ deseja realizar um filtro? Você pode:
 fiscal que você deseja consultar...` },
                 },
                 {
-                    type: 'aguardaResposta',
+                    type: 'aguardarNumeroNotafiscal',
                     aguardaResposta: true,
-                    params: {
-                        'respostasValidas': [
-                            { respostaValue: "1", nextStepId: "1_2_1_1_1_1_1" },
-                            { respostaValue: "2", nextStepId: "1_2_1_1_1_1_2" },
-                            { respostaValue: "3", nextStepId: "1_2_1_1_1_1_3" },
-                        ]
-                    }
+                    params: undefined
                 }
             ]
         },
+        {
+            stepId: '1_2_1_1_1_1_2',
+            actions: [
+                {
+                    type: 'enviaMensagem',
+                    aguardaResposta: false,
+                    params: {
+                        'conteudo': `Certo! Me informe qual o período que você deseja 
+que eu consulte seus boletos:
+ 1. Últimos 7 dias
+ 2. Últimos 15 dias
+ 3. Últimos 30 dias
+ 4. Voltar ao menu anterior` },
+                },
+                {
+                    type: 'aguardarNumeroNotafiscal',
+                    aguardaResposta: true,
+                    params: undefined
+                }
+            ]
+        },
+
         {
             stepId: 'PESQUISA_1', //333
 

@@ -1,19 +1,18 @@
-
 import XcallyApiService from "../services/XcallyApiService";
 import Session from "./Session";
 import { ResultAction } from '../interfaces/ResultAction';
 import { ActionDefinition } from "../interfaces/ActionDefinition";
 import { validaRespotaUsuario } from "./useCases/validaResposta";
 import { aguardaCpfOuCnpj } from "./useCases/aguardaCpfOuCnpj";
+import { aguardarNumeroNotafiscal } from "./useCases/aguardarNumeroNotafiscal";
 
 
 
 
 type ActionHandler = (session: Session, params: ActionDefinition | undefined) => Promise<ResultAction>;
 
-
-interface ActionRegistry {
-    [key: string]: ActionHandler
+type ActionRegistry = {
+    [Key in ActionDefinition["type"]]: ActionHandler
 }
 
 const actionRegistry: ActionRegistry = {
@@ -46,6 +45,16 @@ const actionRegistry: ActionRegistry = {
         } else {
             const nextStep = await aguardaCpfOuCnpj(session, args.params.nextStep);
             return { success: true, nextStep }
+        }
+    },
+    "aguardarNumeroNotafiscal": async (session, args) => {
+
+        if (args?.type !== 'aguardarNumeroNotafiscal') throw new Error('actionRegistry -> aguardarNumeroNotafiscal');
+        if (!session.sessionDb.aguardandoResposta) {
+            return await session.updateAguardandoResposta(true);
+        } else {
+            await aguardarNumeroNotafiscal(session);
+            return { success: true }
         }
     },
 };

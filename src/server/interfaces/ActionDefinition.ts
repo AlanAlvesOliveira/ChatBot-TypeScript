@@ -1,3 +1,5 @@
+import { aguardaCpfOuCnpj } from './../core/useCases/aguardaCpfOuCnpj';
+import { DataType } from 'sequelize-typescript';
 
 export type ActionDefinition = {
     type: 'enviaMensagem';
@@ -19,7 +21,11 @@ export type ActionDefinition = {
     type: 'encaminharFila';
     aguardaResposta: boolean;
     params: EncaminharParams
-};
+} | {
+    type: 'aguardarNumeroNotafiscal';
+    aguardaResposta: boolean;
+    params: undefined;
+}
 
 
 
