@@ -13,18 +13,18 @@ export const aguardaCpfOuCnpj = async (session: Session, nextStep: string): Prom
 
     if (!cpfValido(msg) && !cnpjValido(msg)) {
 
-        await XcallyApiService.SendMessage('aguardaCpfOuCnpj', session, `Desculpa, mas o dado informado está 
-invalido.  Vamos tentar novamente?
-
-Informe o CPF ou o CNPJ, apenas números,  
-para que eu possa consultar seus boletos...`);
-
         session.sessionDb.countAnswerError++;
         await session.sessionDb.save();
 
         if (session.sessionDb.countAnswerError > 2) {
             await XcallyApiService.SendMessage("flow - aguardaCpfOuCnpj", session, `Olha, como não consegui validar o CPF/CNPJ, estou te transferindo para um dos nossos colaboradores.`);
             await session.encaminhaFila('queue');
+        } else {
+            await XcallyApiService.SendMessage('aguardaCpfOuCnpj', session, `Desculpa, mas o dado informado está 
+invalido.  Vamos tentar novamente?
+
+Informe o CPF ou o CNPJ (somente números), apenas números,  
+para que eu possa consultar seus boletos...`);
         }
         return;
     }

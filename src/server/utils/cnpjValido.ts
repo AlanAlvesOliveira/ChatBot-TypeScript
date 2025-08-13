@@ -1,4 +1,4 @@
-export const cnpjValido = (cnpj: string): boolean => {
+export function cnpjValido(cnpj: string): boolean {
     // Remove caracteres não numéricos
     cnpj = cnpj.replace(/\D/g, '');
 

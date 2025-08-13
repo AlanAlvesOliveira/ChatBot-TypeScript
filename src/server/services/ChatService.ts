@@ -15,30 +15,42 @@ export default class ChatService {
         if (session.sessionDb.aguardandoResposta) {
 
 
-            const aguardaCpfOuCnpjAction = currentStep.actions.find(x => x.type === 'aguardaCpfOuCnpj');
-            if (aguardaCpfOuCnpjAction) {
-                console.log(`-> Esperando (aguardaCpfOuCnpjAction) resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
+            const actionsComResposta = currentStep.actions.filter(x => x.aguardaResposta);
+            if (actionsComResposta.length > 1) throw new Error(`Encontrei mais de uma ação esperando resposta no step ${currentStep.stepId}`);
 
-                const newStep = await aguardaCpfOuCnpj(session, aguardaCpfOuCnpjAction.params.nextStep);
-                if (!newStep) {
-                    console.log('não foi possível localizar um novo step em aguardaRespostaAction');
-                } else {
-                    currentStep = newStep;
-                }
-            } else {
-                const aguardaRespostaAction = currentStep.actions.find(x => x.type === 'aguardaResposta');
 
-                if (aguardaRespostaAction) {
-                    console.log(`-> Esperando (aguardaRespostaAction) resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
+            const action = actionsComResposta[0];
 
-                    const newStep = await validaRespostaUsuario(session, aguardaRespostaAction);
-                    if (!newStep) {
-                        console.log('não foi possível localizar um novo step em aguardaRespostaAction');
-                    } else {
-                        currentStep = newStep;
-                    }
-                }
+            const actionHandler = actionRegistry[action.type];
+            const result = await actionHandler(session, action);
+            if (result.success && result.nextStep) {
+                currentStep = result.nextStep;
             }
+
+            // const aguardaCpfOuCnpjAction = currentStep.actions.find(x => x.type === 'aguardaCpfOuCnpj');
+            // if (aguardaCpfOuCnpjAction) {
+            //     console.log(`-> Esperando (aguardaCpfOuCnpjAction) resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
+
+            //     const newStep = await aguardaCpfOuCnpj(session, aguardaCpfOuCnpjAction.params.nextStep);
+            //     if (!newStep) {
+            //         console.log('não foi possível localizar um novo step em aguardaRespostaAction');
+            //     } else {
+            //         currentStep = newStep;
+            //     }
+            // } else {
+            //     const aguardaRespostaAction = currentStep.actions.find(x => x.type === 'aguardaResposta');
+
+            //     if (aguardaRespostaAction) {
+            //         console.log(`-> Esperando (aguardaRespostaAction) resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
+
+            //         const newStep = await validaRespostaUsuario(session, aguardaRespostaAction);
+            //         if (!newStep) {
+            //             console.log('não foi possível localizar um novo step em aguardaRespostaAction');
+            //         } else {
+            //             currentStep = newStep;
+            //         }
+            //     }
+            // }
         }
 
 

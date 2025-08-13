@@ -1,5 +1,5 @@
 
-export const cpfValido = (cpf: string): boolean => {
+export function cpfValido(cpf: string): boolean {
     // Remove caracteres não numéricos
     cpf = cpf.replace(/\D/g, '');
 

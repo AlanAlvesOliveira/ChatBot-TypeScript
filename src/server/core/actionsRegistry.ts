@@ -3,6 +3,8 @@ import XcallyApiService from "../services/XcallyApiService";
 import Session from "./Session";
 import { ResultAction } from '../interfaces/ResultAction';
 import { ActionDefinition } from "../interfaces/ActionDefinition";
+import { validaRespotaUsuario } from "./useCases/validaResposta";
+import { aguardaCpfOuCnpj } from "./useCases/aguardaCpfOuCnpj";
 
 
 
@@ -21,7 +23,12 @@ const actionRegistry: ActionRegistry = {
     },
     "aguardaResposta": async (session, args) => {
         if (args?.type !== 'aguardaResposta') throw new Error('actionRegistry -> aguardaResposta');
-        return await session.updateAguardandoResposta(true);
+        if (!session.sessionDb.aguardandoResposta) {
+            return await session.updateAguardandoResposta(true);
+        } else {
+            const nextStep = await validaRespotaUsuario(session, args);
+            return { success: true, nextStep }
+        }
     },
     "encerrarInteracao": async (session, args) => {
         if (args?.type !== 'encerrarInteracao') throw new Error('actionRegistry -> encerrarInteracao');
@@ -32,8 +39,14 @@ const actionRegistry: ActionRegistry = {
         return await session.encaminhaFila(args.params.nomeFila);
     },
     "aguardaCpfOuCnpj": async (session, args) => {
+
         if (args?.type !== 'aguardaCpfOuCnpj') throw new Error('actionRegistry -> aguardaCpfOuCnpj');
-        return await session.updateAguardandoResposta(true);
+        if (!session.sessionDb.aguardandoResposta) {
+            return await session.updateAguardandoResposta(true);
+        } else {
+            const nextStep = await aguardaCpfOuCnpj(session, args.params.nextStep);
+            return { success: true, nextStep }
+        }
     },
 };
 

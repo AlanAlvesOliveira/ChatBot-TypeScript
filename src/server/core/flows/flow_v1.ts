@@ -11,6 +11,7 @@ const flow: Flow = {
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         "conteudo": `*Bem-vindo a Husqvarna*
 
@@ -21,6 +22,7 @@ Digite a opção desejada:
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         "respostasValidas": [
                             { respostaValue: "1", nextStepId: "1_1" },
@@ -36,6 +38,7 @@ Digite a opção desejada:
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Consumidor*
 
@@ -49,6 +52,7 @@ Digite *9* para *Encerrar seu Atendimento*`}
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "1_1_1" },
@@ -66,6 +70,7 @@ Digite *9* para *Encerrar seu Atendimento*`}
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Consumidor/E-commerce*
 
@@ -79,6 +84,7 @@ Digite a opção desejada:
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "queue" },
@@ -98,6 +104,7 @@ Digite a opção desejada:
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Consumidor/E-commerce/Trocas e Devoluções*
 
@@ -112,6 +119,7 @@ Digite *2* para *NÃO*`}
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         respostasValidas: [
                             { respostaValue: "1", nextStepId: "PESQUISA_1" },
@@ -128,6 +136,7 @@ Digite *2* para *NÃO*`}
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Consumidor/E-commerce/Outros Assuntos*
 
@@ -144,6 +153,7 @@ Digite *2* para *NÃO*`}
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         respostasValidas: [
                             { respostaValue: "1", nextStepId: "PESQUISA_1" },
@@ -159,6 +169,7 @@ Digite *2* para *NÃO*`}
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Consumidor/Pós-Vendas e Suporte*
 
@@ -172,6 +183,7 @@ Digite a opção desejada:
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         respostasValidas: [
                             { respostaValue: "1", nextStepId: "queue" },
@@ -191,6 +203,7 @@ Digite a opção desejada:
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Consumidor/Pós-Vendas e Suporte/Localizar Assistência Técnica ou Revenda Autorizada*
 
@@ -205,6 +218,7 @@ Digite *2* para *NÃO*`}
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "PESQUISA_1" },
@@ -221,6 +235,7 @@ Digite *2* para *NÃO*`}
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Consumidor/E-commerce/Outros Assuntos*
 
@@ -237,6 +252,7 @@ Digite *2* para *NÃO*`}
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "PESQUISA_1" },
@@ -253,6 +269,7 @@ Digite *2* para *NÃO*`}
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Revenda*
 
@@ -266,6 +283,7 @@ Digite *9* para *Encerrar seu Atendimento*`}
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "1_2_1" },
@@ -282,6 +300,7 @@ Digite *9* para *Encerrar seu Atendimento*`}
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Revenda/Financeiro*
 
@@ -292,6 +311,7 @@ Digite a opção desejada:
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "1_2_1_1" },
@@ -307,6 +327,7 @@ Digite a opção desejada:
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Revenda/Pós-Venda e Suporte*
 
@@ -321,6 +342,7 @@ Digite a opção desejada:
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "queue" },
@@ -364,6 +386,7 @@ Digite a opção desejada:
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Você escolheu a opção: *Revenda/Financeiro/Boletos*
 
@@ -375,6 +398,7 @@ Digite a opção desejada:
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "1_2_1_1_1" },
@@ -391,12 +415,14 @@ Digite a opção desejada:
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Para que possamos dar continuidade a emissão do(s) seu(s) boleto(s), por gentileza, informe o CPF ou CNPJ, apenas números, para consulta.`
                     },
                 },
                 {
                     type: 'aguardaCpfOuCnpj',
+                    aguardaResposta: true,
                     params: { 'nextStep': `1_2_1_1_1_1` }
                 }
             ]
@@ -406,6 +432,7 @@ Digite a opção desejada:
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Para facilitar a busca da informação dentro do sistema, você 
 deseja realizar um filtro? Você pode:
@@ -416,6 +443,7 @@ deseja realizar um filtro? Você pode:
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "1_2_1_1_1_1_1" },
@@ -431,12 +459,14 @@ deseja realizar um filtro? Você pode:
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': ` Informe, por gentileza, informe o número da nota 
 fiscal que você deseja consultar...` },
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "1_2_1_1_1_1_1" },
@@ -453,6 +483,7 @@ fiscal que você deseja consultar...` },
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `*Pesquisa de Satisfação*
 
@@ -463,6 +494,7 @@ Digite *2* para *NÃO*`}
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "end" },
@@ -479,6 +511,7 @@ Digite *2* para *NÃO*`}
             actions: [
                 {
                     type: 'enviaMensagem',
+                    aguardaResposta: false,
                     params: {
                         'conteudo': `Sentimos muito por isso!
 Deseja nos dar mais detalhes sobre porque não conseguimos te ajudar?
@@ -488,6 +521,7 @@ Digite *2* para *NÃO*`}
                 },
                 {
                     type: 'aguardaResposta',
+                    aguardaResposta: true,
                     params: {
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "queue" },
@@ -501,7 +535,11 @@ Digite *2* para *NÃO*`}
         {
             stepId: 'end',
             actions: [
-                { type: 'encerrarInteracao', params: undefined }
+                {
+                    type: 'encerrarInteracao',
+                    aguardaResposta: false,
+                    params: undefined,
+                }
             ]
         },
         {
@@ -509,6 +547,7 @@ Digite *2* para *NÃO*`}
             actions: [
                 {
                     type: 'encaminharFila',
+                    aguardaResposta: false,
                     params: { "nomeFila": "queue" }
                 }
             ]
@@ -518,6 +557,7 @@ Digite *2* para *NÃO*`}
             actions: [
                 {
                     type: 'encaminharFila',
+                    aguardaResposta: false,
                     params: { 'nomeFila': "suporte" }
                 }
             ]
