@@ -1,8 +1,10 @@
+import { response } from 'express';
 import Session from "../core/Session";
 import axios from "axios";
 import { getConfiguration } from "../utils/loadConfiguration";
 import SessionManager from "./SessionManager";
 import { ResultAction } from "../interfaces/ResultAction";
+import returnQtdInteractions from "../interfaces/xcally/returnQtdInteractions";
 
 const configJson = getConfiguration();
 
@@ -76,6 +78,74 @@ export default class XcallyApiService {
     }
 
 
+
+    static async getTotalInteractionsByContatactId(contactId: string): Promise<returnQtdInteractions> {
+        {
+            try {
+
+                if (!contactId) throw new Error('Contact Id é obrigatório');
+
+                // Construir os parâmetros da URL
+                const queryParams = new URLSearchParams();
+
+                // Parâmetros obrigatórios
+                queryParams.append('OpenchannelAccountId', configJson.xcally.ID_OPEN_CHANNEL.toString());
+                const hoje = new Date();
+                const dataInicial = new Date(hoje);
+                dataInicial.setMinutes(dataInicial.getMinutes() - configJson.plugin.INTERVALO_PARA_VERIFICACAO_EM_MINUTOS);
+
+                const dataFinal = new Date(hoje);
+                dataFinal.setHours(23, 59, 59, 999);
+                // Converte para string no formato ISO 8601
+                const createdAt = {
+                    $gte: dataInicial.toISOString(), // Ex: "2023-11-15T00:00:00.000Z"
+                    $lte: dataFinal.toISOString()    // Ex: "2023-11-15T23:59:59.999Z"
+                };
+                queryParams.append('createdAt', JSON.stringify(createdAt));
+                queryParams.append('limit', '1');
+                queryParams.append('offset', '0');
+                queryParams.append('page', '1');
+                queryParams.append('search', `[$and]Contact:=$eq[${contactId}]||OpenchannelAccountId:=$eq[${configJson.xcally.ID_OPEN_CHANNEL}]`);
+                // Construir a URL
+                const url = `${configJson.xcally.url}/api/openchannel/interactions?${queryParams.toString()}&apikey=${configJson.xcally.API_KEY}`;
+
+                const config = {
+                    method: "get",
+                    maxBodyLength: Infinity,
+                    url: url,
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                };
+
+                const response = await axios.request(config);
+                return {
+                    success: true,
+                    count: response.data.count
+                }
+            } catch (error) {
+                // Tratamento para erros do Axios
+                if (axios.isAxiosError(error)) {
+                    console.error('[ERR] getInteractions - API Error:', {
+                        status: error.response?.status,
+                        data: error.response?.data,
+                        config: error.config
+                    });
+                    return {
+                        success: false,
+                        error: error.response?.data?.message || 'API request failed'
+                    };
+                }
+
+                // Erros não relacionados ao Axios
+                console.error('[ERR] getInteractions - Unexpected error:', error);
+                return {
+                    success: false,
+                    error: 'Unexpected error occurred'
+                };
+            }
+        }
+    }
 
     static async CloseInteration(context: string, sessionData: Session) {
 

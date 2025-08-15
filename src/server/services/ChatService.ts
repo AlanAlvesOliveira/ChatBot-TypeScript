@@ -1,11 +1,21 @@
+import { getConfiguration } from './../utils/loadConfiguration';
 import { aguardaCpfOuCnpj } from './../core/useCases/aguardaCpfOuCnpj';
 import ParsedData from "../interfaces/ParsedData";
 import SessionManager from "./SessionManager";
 import actionRegistry from "../core/actionsRegistry";
 import { validaRespotaUsuario as validaRespostaUsuario } from "../core/useCases/validaResposta";
+import XcallyApiService from './XcallyApiService';
+import { VerificaExcessoInteracoes } from './VerificaExcessoInteracoes';
 
 export default class ChatService {
     static async flow(data: ParsedData): Promise<string> {
+
+        const excessoDeInteracoes = await VerificaExcessoInteracoes(data.contactId);
+
+        if (excessoDeInteracoes.maximoAtingido) {
+            console.log(`[WARNING] Excesso de interações detectado para ${excessoDeInteracoes}`,);
+            return 'end';
+        }
 
         const session = await SessionManager.createOrGetSession(data);
         await session.startResetTimeout();
