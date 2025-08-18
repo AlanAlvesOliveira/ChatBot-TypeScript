@@ -15,11 +15,16 @@ export interface SystemConfiguration {
         API_KEY: string;
         ID_OPEN_CHANNEL: number;
     };
+
     itau: {
         url: string;
-        API_KEY: string;
+        clientId: string;
+        clientSecret: string;
+        KEY_CERTIFICADO_CRT: string;
+        KEY_CHAVE_PRIVADA: string;
+        x_itau_correlationID: string;
+        x_itau_flowid: string;
     }
-
 
     DATABASE: {
         dbname: string

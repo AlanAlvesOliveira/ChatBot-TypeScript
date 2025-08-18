@@ -1,71 +1,86 @@
+import { BoletosRequest } from './../interfaces/itau/BoletosRequest';
 import axios from "axios";
-import Session from "../core/Session";
 import { getConfiguration } from "../utils/loadConfiguration";
-import { ResultAction } from "../interfaces/ResultAction";
+import fs from 'fs';
+import https from 'https'
+import { response } from "express";
+
 
 const configJson = getConfiguration();
 
 export default class ItauApiService {
 
-
-    static async GetToken(context: string, sessionData: Session): Promise<ResultAction> {
+    static async GetToken(): Promise<any> {
         try {
-            const data = {
 
-            };
+            const cert = configJson.itau.KEY_CERTIFICADO_CRT;
+            const key = configJson.itau.KEY_CHAVE_PRIVADA;
 
-            const url = `${configJson.itau.url}/api/openchannel/messages?apikey`;
+            const httpsAgent = new https.Agent({
+                cert,
+                key,
+                rejectUnauthorized: true
+            });
 
-            const config = {
-                method: "post",
-                maxBodyLength: Infinity,
-                url: url,
+            const url = `https://sts.itau.com.br/api/oauth/token`;
+            const clientId = configJson.itau.clientId;
+            const clientSecret = configJson.itau.clientSecret;
+            const params = new URLSearchParams();
+
+            params.append('grant_type', 'client_credentials');
+            params.append('client_id', clientId);
+            params.append('client_secret', clientSecret);
+
+            const response = await axios.post(url, params, {
+                httpsAgent, // Usa o agente configurado com o certificado
                 headers: {
-                    "Content-Type": "application/json"
-                },
-                data: data,
-            };
-
-            const response = await axios.request(config);
-            return { success: true };
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+            return response;
 
         } catch (error) {
+
             // Tratamento para erros do Axios
-            if (axios.isAxiosError(error)) {
-                // Erro 500 com mensagem específica de constraint
-                if (error.response?.status === 500 &&
-                    error.response?.data?.message?.includes('foreign key constraint fails')) {
-                    // console.error('[ERR] SendMessage - Foreign key constraint violation:', {
-                    //     code: error.response?.data?.code,
-                    //     message: error.response?.data?.message,
-                    //     details: error.response?.data?.details
-                    // });
-                    sessionData.clearTimeoutsAndRemoveFromMemory(`${context} erro SendMessage `);
-                    return {
-                        success: false,
-                        error: 'Database constraint violation'
-                    };
-                }
-
-                // Outros erros HTTP
-                console.error('[ERR] SendMessage - API Error:', {
-                    status: error.response?.status,
-                    data: error.response?.data,
-                    config: error.config
-                });
-                return {
-                    success: false,
-                    error: error.response?.data?.message || 'API request failed'
-                };
-            }
-
-            // Erros não relacionados ao Axios
-            console.error('[ERR] SendMessage - Unexpected error:', error);
-            return {
-                success: false,
-                error: 'Unexpected error occurred'
-            };
+            console.log(error)
         }
     }
 
+
+    static async GetBoletoPorFiltro(boletosRequest: BoletosRequest, token: string): Promise<any> {
+        try {
+
+            const cert = configJson.itau.KEY_CERTIFICADO_CRT;
+            const key = configJson.itau.KEY_CHAVE_PRIVADA;
+
+            const httpsAgent = new https.Agent({
+                cert,
+                key,
+                rejectUnauthorized: true
+            });
+
+            const url = new URL('https://boleto.api.itau.com/boleto/v1/boletos');
+            url.searchParams.append('idBeneficiario', boletosRequest.idBeneficiario);
+            url.searchParams.append('cnpjPagador', boletosRequest.cnpjPagador);
+            url.searchParams.append('situacao', boletosRequest.situacao);
+
+            const response = await axios.get(url.toString(), {
+                httpsAgent, // Usa o agente configurado com o certificado
+                headers: {
+                    'Accept': 'application/json',
+                    'x-itau-correlationID': configJson.itau.x_itau_correlationID, //(Required) UUID que identifica a transação.
+                    'x-itau-apikey': configJson.itau.clientId, //(Required) Chave que identifica o chamador.
+                    'x-itau-flowid': configJson.itau.x_itau_flowid, //Chave que identifica o fluxo de negócio. Deve ser diferente do __x-itau-correlationid__.
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response;
+
+        } catch (error) {
+
+            // Tratamento para erros do Axios
+            console.log(error)
+        }
+    }
 }
+
