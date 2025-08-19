@@ -397,7 +397,7 @@ Digite a opção desejada:
 3 - *Supplier (Compra Fácil)*`}
                 },
                 {
-                    type: 'aguardaResposta',
+                    type: 'aguardarFiltroDias',
                     aguardaResposta: true,
                     params: {
                         'respostasValidas': [
@@ -412,6 +412,7 @@ Digite a opção desejada:
         },
         {
             stepId: '1_2_1_1_1',
+
             actions: [
                 {
                     type: 'enviaMensagem',
@@ -424,6 +425,24 @@ Digite a opção desejada:
                     type: 'aguardaCpfOuCnpj',
                     aguardaResposta: true,
                     params: { 'nextStep': `1_2_1_1_1_1` }
+                }
+            ]
+        },
+        {
+            stepId: '1_2_1_1_2',
+
+            actions: [
+                {
+                    type: 'enviaMensagem',
+                    aguardaResposta: false,
+                    params: {
+                        'conteudo': `Para que possamos dar continuidade a emissão do(s) seu(s) boleto(s), por gentileza, informe o CPF ou CNPJ, apenas números, para consulta.`
+                    },
+                },
+                {
+                    type: 'aguardaCpfOuCnpj',
+                    aguardaResposta: true,
+                    params: { 'nextStep': `1_2_1_1_2_1` }
                 }
             ]
         },
@@ -486,7 +505,25 @@ que eu consulte seus boletos:
  4. Voltar ao menu anterior` },
                 },
                 {
-                    type: 'aguardarNumeroNotafiscal',
+                    type: 'aguardaResposta',
+                    aguardaResposta: true,
+                    params: {
+                        'respostasValidas': [
+                            { respostaValue: "1", nextStepId: "1_2_1_1_1_1_2_1" },
+                            { respostaValue: "2", nextStepId: "1_2_1_1_1_1_2_1" },
+                            { respostaValue: "3", nextStepId: "1_2_1_1_1_1_2_1" },
+                            { respostaValue: "4", nextStepId: "1_2_1_1_1_1" },
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            stepId: '1_2_1_1_1_1_2_1',
+            actions: [
+
+                {
+                    type: 'ListarBoletos',
                     aguardaResposta: true,
                     params: undefined
                 }

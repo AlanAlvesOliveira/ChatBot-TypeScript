@@ -1,13 +1,11 @@
-import { ActionDefinition } from "../../interfaces/ActionDefinition";
 import { StoredStep } from "../../interfaces/StoredStep";
 import XcallyApiService from "../../services/XcallyApiService";
 import Session from "../Session";
 
-export const validaRespotaUsuario = async (session: Session, currentStep: ActionDefinition): Promise<StoredStep | undefined> => {
+export const validaRespotaUsuario = async (session: Session, currentStep: Array<{ respostaValue: string; nextStepId: string; }>): Promise<StoredStep | undefined> => {
 
     const respostaUser = session.getSessionData().messageFromClient?.trim();
-    if (currentStep.type !== 'aguardaResposta') throw new Error('Erro no tipo da action do validaRespotaUsuario');
-    const achouResposta = currentStep.params.respostasValidas.find(x => x.respostaValue === respostaUser);
+    const achouResposta = currentStep.find(x => x.respostaValue === respostaUser);
 
     if (achouResposta) {
         session.sessionDb.statusAntigo = session.sessionDb.sessionStatus;

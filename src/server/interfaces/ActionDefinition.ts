@@ -25,13 +25,21 @@ export type ActionDefinition = {
     type: 'aguardarNumeroNotafiscal';
     aguardaResposta: boolean;
     params: undefined;
+} | {
+    type: 'aguardarFiltroDias';
+    aguardaResposta: boolean;
+    params: RespostaParams
+} | {
+    type: 'ListarBoletos';
+    aguardaResposta: boolean;
+    params: undefined
 }
-
 
 
 interface EncaminharParams {
     nomeFila: string;
 }
+
 
 interface RespostaParams {
     respostasValidas: Array<{

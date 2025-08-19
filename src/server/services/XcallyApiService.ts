@@ -85,40 +85,33 @@ export default class XcallyApiService {
 
                 if (!contactId) throw new Error('Contact Id é obrigatório');
 
-                // Construir os parâmetros da URL
-                const queryParams = new URLSearchParams();
+                const url = new URL(`${configJson.xcally.url}/api/openchannel/interactions`);
+                url.searchParams.append('OpenchannelAccountId', configJson.xcally.ID_OPEN_CHANNEL.toString());
 
-                // Parâmetros obrigatórios
-                queryParams.append('OpenchannelAccountId', configJson.xcally.ID_OPEN_CHANNEL.toString());
                 const hoje = new Date();
                 const dataInicial = new Date(hoje);
-                dataInicial.setMinutes(dataInicial.getMinutes() - configJson.plugin.INTERVALO_PARA_VERIFICACAO_EM_MINUTOS);
 
+                const minutos = configJson.plugin.INTERVALO_PARA_VERIFICACAO_EM_MINUTOS;
+                if (!minutos) throw new Error('Verique se existe INTERVALO_PARA_VERIFICACAO_EM_MINUTOS no config.json');
+
+                dataInicial.setMinutes(dataInicial.getMinutes() - minutos);
                 const dataFinal = new Date(hoje);
-                dataFinal.setHours(23, 59, 59, 999);
-                // Converte para string no formato ISO 8601
                 const createdAt = {
                     $gte: dataInicial.toISOString(), // Ex: "2023-11-15T00:00:00.000Z"
                     $lte: dataFinal.toISOString()    // Ex: "2023-11-15T23:59:59.999Z"
                 };
-                queryParams.append('createdAt', JSON.stringify(createdAt));
-                queryParams.append('limit', '1');
-                queryParams.append('offset', '0');
-                queryParams.append('page', '1');
-                queryParams.append('search', `[$and]Contact:=$eq[${contactId}]||OpenchannelAccountId:=$eq[${configJson.xcally.ID_OPEN_CHANNEL}]`);
-                // Construir a URL
-                const url = `${configJson.xcally.url}/api/openchannel/interactions?${queryParams.toString()}&apikey=${configJson.xcally.API_KEY}`;
 
-                const config = {
-                    method: "get",
-                    maxBodyLength: Infinity,
-                    url: url,
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                };
+                new Date().toISOString()
+                url.searchParams.append('createdAt', JSON.stringify(createdAt));
 
-                const response = await axios.request(config);
+                url.searchParams.append('limit', '1');
+                url.searchParams.append('offset', '0');
+                url.searchParams.append('page', '1');
+                url.searchParams.append('search', `[$and]Contact:=$eq[${contactId}]||OpenchannelAccountId:=$eq[${configJson.xcally.ID_OPEN_CHANNEL}]`);
+                url.searchParams.append('apikey', configJson.xcally.API_KEY);
+
+                const response = await axios.get(url.toString());
+
                 return {
                     success: true,
                     count: response.data.count

@@ -40,7 +40,7 @@ export default class ParsedHandle {
             }
 
             // Verificando se há campos obrigatórios ausentes
-            const requiredFields = { accountId, contactId, interactionId, messageFromClient };
+            const requiredFields = { accountId, contactId, interactionId };
             const missingFields = Object.entries(requiredFields)
                 .filter(([_, value]) => !value.trim())
                 .map(([key]) => key);

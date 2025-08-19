@@ -1,5 +1,9 @@
 TODO
 
+1- colocar o excesso o retorno excesso de tentativas no router
+2-Fazer a parte de tags
+
+
 
 2- ver se a questão de fazer update no sessionStatus e AntigosessonStatus estão sendo repetidos
 
@@ -7,6 +11,8 @@ teste oi
 
 oi,1,1,1 ok
 oi,1,2,1 ok queue
+
+
 
 
 FEITO 

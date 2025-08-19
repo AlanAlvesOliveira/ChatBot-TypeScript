@@ -4,32 +4,33 @@ import { getConfiguration } from "../utils/loadConfiguration";
 import fs from 'fs';
 import https from 'https'
 import { response } from "express";
+import { BoletosResponse } from '../interfaces/itau/BoletosResponse';
+import { OAuthTokenResponse } from '../interfaces/itau/OAuthTokenResponse';
 
 
 const configJson = getConfiguration();
 
+const cert = configJson.itau.KEY_CERTIFICADO_CRT;
+const key = configJson.itau.KEY_CHAVE_PRIVADA;
+
+const httpsAgent = new https.Agent({
+    cert,
+    key,
+    rejectUnauthorized: true
+});
+
 export default class ItauApiService {
 
-    static async GetToken(): Promise<any> {
+    static async GetToken(): Promise<OAuthTokenResponse | undefined> {
         try {
 
-            const cert = configJson.itau.KEY_CERTIFICADO_CRT;
-            const key = configJson.itau.KEY_CHAVE_PRIVADA;
-
-            const httpsAgent = new https.Agent({
-                cert,
-                key,
-                rejectUnauthorized: true
-            });
-
             const url = `https://sts.itau.com.br/api/oauth/token`;
-            const clientId = configJson.itau.clientId;
-            const clientSecret = configJson.itau.clientSecret;
+
             const params = new URLSearchParams();
 
             params.append('grant_type', 'client_credentials');
-            params.append('client_id', clientId);
-            params.append('client_secret', clientSecret);
+            params.append('client_id', configJson.itau.clientId);
+            params.append('client_secret', configJson.itau.clientSecret);
 
             const response = await axios.post(url, params, {
                 httpsAgent, // Usa o agente configurado com o certificado
@@ -37,7 +38,7 @@ export default class ItauApiService {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
-            return response;
+            return response.data;
 
         } catch (error) {
 
@@ -47,22 +48,16 @@ export default class ItauApiService {
     }
 
 
-    static async GetBoletoPorFiltro(boletosRequest: BoletosRequest, token: string): Promise<any> {
+    static async GetBoletoPorFiltro(boletosRequest: BoletosRequest, token: string): Promise<BoletosResponse | undefined> {
         try {
-
-            const cert = configJson.itau.KEY_CERTIFICADO_CRT;
-            const key = configJson.itau.KEY_CHAVE_PRIVADA;
-
-            const httpsAgent = new https.Agent({
-                cert,
-                key,
-                rejectUnauthorized: true
-            });
 
             const url = new URL('https://boleto.api.itau.com/boleto/v1/boletos');
             url.searchParams.append('idBeneficiario', boletosRequest.idBeneficiario);
             url.searchParams.append('cnpjPagador', boletosRequest.cnpjPagador);
             url.searchParams.append('situacao', boletosRequest.situacao);
+            url.searchParams.append('order', 'asc');
+
+            //url.searchParams.append('dataEntrada', '2024-10-31');
 
             const response = await axios.get(url.toString(), {
                 httpsAgent, // Usa o agente configurado com o certificado
@@ -74,7 +69,7 @@ export default class ItauApiService {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            return response;
+            return response.data;
 
         } catch (error) {
 

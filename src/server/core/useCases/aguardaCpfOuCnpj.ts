@@ -26,7 +26,8 @@ invalido.  Vamos tentar novamente?
 Informe o CPF ou o CNPJ (somente números), apenas números,  
 para que eu possa consultar seus boletos...`);
         }
-        return;
+
+        return; //não faz mais nada
     }
 
     session.sessionDb.countAnswerError = 0;
@@ -44,8 +45,8 @@ para que eu possa consultar seus boletos...`);
         return
     }
 
-    await XcallyApiService.SendMessage("flow - aguardaCpfOuCnpj", session, `Certo! Só um instante enquanto eu busco no meu 
-sistema ..`);
+    //     await XcallyApiService.SendMessage("flow - aguardaCpfOuCnpj", session, `Certo! Só um instante enquanto eu busco no meu 
+    // sistema ..`);
 
     const result = await session.updateStatusInBd('1_2_1_1_1_1');
     if (result.success) {

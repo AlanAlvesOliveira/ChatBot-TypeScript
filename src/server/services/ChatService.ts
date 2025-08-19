@@ -11,8 +11,10 @@ export default class ChatService {
     static async flow(data: ParsedData): Promise<string> {
 
         const excessoDeInteracoes = await VerificaExcessoInteracoes(data.contactId);
+        //não está filtrando corretamente
+        console.log('excessoDeInteracoes -> ', excessoDeInteracoes)
 
-        if (excessoDeInteracoes.maximoAtingido) {
+        if (excessoDeInteracoes && excessoDeInteracoes.maximoAtingido) {
             console.log(`[WARNING] Excesso de interações detectado para ${excessoDeInteracoes}`,);
             return 'end';
         }
