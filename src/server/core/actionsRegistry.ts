@@ -168,16 +168,12 @@ const actionRegistry: ActionRegistry = {
                 throw new Error('ListarBoletos tipoBoletoSolicitado não encontrada ')
             }
 
-
-
             let msg = `Pronto! Localizei ${boletosFiltrados.length} ${tipoBoletoSolicitado} boletos no meu sistema. Por 
 favor, selecione qual boleto você deseja:\n`;
 
             for (let index = 0; index < boletosFiltrados.length; index++) {
-
                 const element = boletosFiltrados[index];
                 msg += `${index + 1}. ${element.dataVencimento} no valor de ${element.valor}\n`
-
             }
 
             //console.log('chegeui aqui ===> ', boletosProximos7Dias);

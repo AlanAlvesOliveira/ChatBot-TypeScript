@@ -6,6 +6,7 @@ import https from 'https'
 import { response } from "express";
 import { BoletosResponse } from '../interfaces/itau/BoletosResponse';
 import { OAuthTokenResponse } from '../interfaces/itau/OAuthTokenResponse';
+import { BoletoDetalhesRequest } from '../interfaces/itau/BoletoDetalhesRequest';
 
 
 const configJson = getConfiguration();
@@ -67,6 +68,35 @@ export default class ItauApiService {
                     'x-itau-apikey': configJson.itau.clientId, //(Required) Chave que identifica o chamador.
                     'x-itau-flowid': configJson.itau.x_itau_flowid, //Chave que identifica o fluxo de negócio. Deve ser diferente do __x-itau-correlationid__.
                     'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data;
+
+        } catch (error) {
+
+            // Tratamento para erros do Axios
+            console.log(error)
+        }
+    }
+
+
+    static async GetDetalhesBoleto(boletosRequest: BoletoDetalhesRequest): Promise<BoletoDetalhesRequest | undefined> {
+        try {
+
+            const url = new URL('https://secure.api.cloud.itau.com.br/boletoscash/v2/boletos');
+            url.searchParams.append('id_beneficiario', boletosRequest.id_beneficiario);
+            url.searchParams.append('codigo_carteira', boletosRequest.codigo_carteira);
+            url.searchParams.append('nosso_numero', boletosRequest.nosso_numero);
+            url.searchParams.append('view', 'full');
+
+            const response = await axios.get(url.toString(), {
+                httpsAgent, // Usa o agente configurado com o certificado
+                headers: {
+                    'Accept': 'application/json',
+                    'x-itau-correlationID': configJson.itau.x_itau_correlationID, //(Required) UUID que identifica a transação.
+                    'x-itau-apikey': configJson.itau.clientId, //(Required) Chave que identifica o chamador.
+                    'x-itau-flowid': configJson.itau.x_itau_flowid, //Chave que identifica o fluxo de negócio. Deve ser diferente do __x-itau-correlationid__.
+                    'Authorization': `Bearer ${boletosRequest.BearerToken}`
                 }
             });
             return response.data;

@@ -48,15 +48,14 @@ para que eu possa consultar seus boletos...`);
     //     await XcallyApiService.SendMessage("flow - aguardaCpfOuCnpj", session, `Certo! Só um instante enquanto eu busco no meu 
     // sistema ..`);
 
-    const result = await session.updateStatusInBd('1_2_1_1_1_1');
+    const result = await session.updateStatusInBd(nextStep);
     if (result.success) {
         return session.getCurrentStep();
     } else {
         console.log('não consegui achar no novo passo no aguarda cpf ou cnpj')
         return undefined;
+
     }
-
-
 
 
 }

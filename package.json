@@ -27,6 +27,7 @@
     "axios": "^1.11.0",
     "express": "^5.1.0",
     "mysql2": "^3.14.3",
+    "puppeteer": "^24.16.2",
     "reflect-metadata": "^0.2.2",
     "sequelize": "^6.37.7",
     "sequelize-typescript": "^2.1.6"

@@ -412,7 +412,6 @@ Digite a opção desejada:
         },
         {
             stepId: '1_2_1_1_1',
-
             actions: [
                 {
                     type: 'enviaMensagem',
@@ -425,24 +424,6 @@ Digite a opção desejada:
                     type: 'aguardaCpfOuCnpj',
                     aguardaResposta: true,
                     params: { 'nextStep': `1_2_1_1_1_1` }
-                }
-            ]
-        },
-        {
-            stepId: '1_2_1_1_2',
-
-            actions: [
-                {
-                    type: 'enviaMensagem',
-                    aguardaResposta: false,
-                    params: {
-                        'conteudo': `Para que possamos dar continuidade a emissão do(s) seu(s) boleto(s), por gentileza, informe o CPF ou CNPJ, apenas números, para consulta.`
-                    },
-                },
-                {
-                    type: 'aguardaCpfOuCnpj',
-                    aguardaResposta: true,
-                    params: { 'nextStep': `1_2_1_1_2_1` }
                 }
             ]
         },
@@ -490,6 +471,51 @@ fiscal que você deseja consultar...` },
                 }
             ]
         },
+        {
+            stepId: '1_2_1_1_2',
+            actions: [
+                {
+                    type: 'enviaMensagem',
+                    aguardaResposta: false,
+                    params: {
+                        'conteudo': `Para que possamos dar continuidade a emissão do(s) seu(s) boleto(s), por gentileza, informe o CPF ou CNPJ, apenas números, para consulta.`
+                    },
+                },
+                {
+                    type: 'aguardaCpfOuCnpj',
+                    aguardaResposta: true,
+                    params: { 'nextStep': `1_2_1_1_2_1` }
+                }
+            ]
+        },
+        {
+            stepId: '1_2_1_1_2_1',
+            actions: [
+                {
+                    type: 'enviaMensagem',
+                    aguardaResposta: false,
+                    params: {
+                        'conteudo': ` Para facilitar a busca da informação dentro do sistema, você 
+deseja realizar um filtro? Você pode:
+
+ 1. Consultar um boleto referente à uma NF específica
+ 2. Consultar todos o boletos em atraso`
+                    },
+                },
+                {
+                    type: 'aguardaResposta',
+                    aguardaResposta: true,
+                    params: {
+                        'respostasValidas': [
+                            { respostaValue: "1", nextStepId: "1_2_1_1_1_1_1" },
+                            { respostaValue: "2", nextStepId: "1_2_1_1_1_1_2_1" },
+                        ]
+                    }
+                }
+            ]
+        },
+
+
         {
             stepId: '1_2_1_1_1_1_2',
             actions: [
