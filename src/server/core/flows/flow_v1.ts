@@ -547,9 +547,13 @@ que eu consulte seus boletos:
         {
             stepId: '1_2_1_1_1_1_2_1',
             actions: [
-
                 {
                     type: 'ListarBoletos',
+                    aguardaResposta: false,
+                    params: undefined
+                },
+                {
+                    type: 'BaixarBoleto',
                     aguardaResposta: true,
                     params: undefined
                 }

@@ -5,10 +5,75 @@ import { getConfiguration } from "../utils/loadConfiguration";
 import SessionManager from "./SessionManager";
 import { ResultAction } from "../interfaces/ResultAction";
 import returnQtdInteractions from "../interfaces/xcally/returnQtdInteractions";
+import fs from 'fs';
+import FormData from 'form-data';
+
 
 const configJson = getConfiguration();
 
 export default class XcallyApiService {
+
+    static async sendDocumentToClient(sessionData: Session, formData: any) {
+
+        try {
+            const data = {
+                body: formData.name,
+                AttachmentId: formData.id,
+                OpenchannelAccountId: sessionData.getSessionData().accountId,
+                OpenchannelInteractionId: sessionData.getSessionData().interactionId,
+                direction: "out",
+                secret: false,
+                UserId: null,
+                sentBy: "auto_routing",
+                ContactId: sessionData.getSessionData().contactId,
+            };
+
+            console.log("[INFO] ~ sendDocumentToClient ~ data:", data);
+
+            const url = `${configJson.xcally.url}/api/openchannel/messages?apikey=${configJson.xcally.API_KEY}`;
+
+            const config = {
+                method: "post",
+                maxBodyLength: Infinity,
+                url: url,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: data,
+            };
+
+            const response = await axios.request(config);
+
+            console.log('sendfile ', response.data)
+
+            return response.data;
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+
+    static async createAttachment(caminhoDoPDF: string) {
+
+        const URL = `${configJson.xcally.url}/api/attachments?apikey=${configJson.xcally.API_KEY}`;
+        const formData = new FormData();
+
+        try {
+            formData.append('file', fs.createReadStream(caminhoDoPDF));
+
+            const response = await axios.post(URL, formData, {
+                headers: {
+                    ...formData.getHeaders(),
+                },
+            });
+
+            console.log("response de createAttachment", response.data);
+            return response.data;
+        } catch (error) {
+            console.log("[ERROR] ~ createAttachment " + formData + " ~ error:", error);
+
+        }
+    };
 
     static async SendMessage(context: string, sessionData: Session, msg: string, secret: boolean = false): Promise<ResultAction> {
         try {

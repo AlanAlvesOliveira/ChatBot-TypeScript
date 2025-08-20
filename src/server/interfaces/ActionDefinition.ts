@@ -33,6 +33,10 @@ export type ActionDefinition = {
     type: 'ListarBoletos';
     aguardaResposta: boolean;
     params: undefined
+} | {
+    type: 'BaixarBoleto';
+    aguardaResposta: boolean;
+    params: undefined
 }
 
 

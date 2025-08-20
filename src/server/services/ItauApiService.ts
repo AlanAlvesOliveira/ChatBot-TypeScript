@@ -7,6 +7,7 @@ import { response } from "express";
 import { BoletosResponse } from '../interfaces/itau/BoletosResponse';
 import { OAuthTokenResponse } from '../interfaces/itau/OAuthTokenResponse';
 import { BoletoDetalhesRequest } from '../interfaces/itau/BoletoDetalhesRequest';
+import { BoletoResponse } from '../interfaces/itau/BoletoDetalhesResponse';
 
 
 const configJson = getConfiguration();
@@ -80,7 +81,7 @@ export default class ItauApiService {
     }
 
 
-    static async GetDetalhesBoleto(boletosRequest: BoletoDetalhesRequest): Promise<BoletoDetalhesRequest | undefined> {
+    static async GetDetalhesBoleto(boletosRequest: BoletoDetalhesRequest): Promise<BoletoResponse | undefined> {
         try {
 
             const url = new URL('https://secure.api.cloud.itau.com.br/boletoscash/v2/boletos');

@@ -8,6 +8,9 @@ import { aguardaCpfOuCnpj } from "./useCases/aguardaCpfOuCnpj";
 import { aguardarNumeroNotafiscal } from "./useCases/aguardarNumeroNotafiscal";
 import ItauApiService from "../services/ItauApiService";
 import { BoletosRequest } from "../interfaces/itau/BoletosRequest";
+import { BoletoDetalhesRequest } from '../interfaces/itau/BoletoDetalhesRequest';
+import ItauBoletoService, { BoletoRequest } from '../services/ItauBoletoService';
+import { send } from 'process';
 
 
 
@@ -145,7 +148,9 @@ const actionRegistry: ActionRegistry = {
                     return dataVencimento >= hoje && dataVencimento <= dataCalculada;
                 }).map(boleto => ({
                     dataVencimento: formatarDataDDMM(new Date(boleto.dataVencimento)),
-                    valor: formatarMoeda(boleto.valor)
+                    valor: formatarMoeda(boleto.valor),
+                    codigoCarteira: boleto.codigoCarteira,
+                    nosso_numero: boleto.nossoNumero
                 }));
 
             } else if (tipoBoletoSolicitado === 'atrasados') {
@@ -160,13 +165,16 @@ const actionRegistry: ActionRegistry = {
                     return dataVencimento <= hoje;
                 }).map(boleto => ({
                     dataVencimento: formatarDataDDMM(new Date(boleto.dataVencimento)),
-                    valor: formatarMoeda(boleto.valor)
+                    valor: formatarMoeda(boleto.valor),
+                    codigoCarteira: boleto.codigoCarteira,
+                    nosso_numero: boleto.nossoNumero
                 }));
 
 
             } else {
                 throw new Error('ListarBoletos tipoBoletoSolicitado não encontrada ')
             }
+            session.addBoletos(boletosFiltrados);
 
             let msg = `Pronto! Localizei ${boletosFiltrados.length} ${tipoBoletoSolicitado} boletos no meu sistema. Por 
 favor, selecione qual boleto você deseja:\n`;
@@ -184,8 +192,66 @@ favor, selecione qual boleto você deseja:\n`;
             await aguardarNumeroNotafiscal(session);
             return { success: true }
         }
+    },
+    "BaixarBoleto": async (session, args) => {
+        if (args?.type !== 'BaixarBoleto') throw new Error('actionRegistry -> BaixarBoleto');
+        if (!session.sessionDb.aguardandoResposta) {
+            return await session.updateAguardandoResposta(true);
+        } else {
+            try {
+                const opcao = parseInt(session.parsedData.messageFromClient);
+                const boletos = session.getBoletos();
+                if (!boletos) throw new Error('sem boletos em memoria')
+                const boleto = boletos[opcao];
+                if (!boleto) {
+                    await XcallyApiService.SendMessage("BaixarBoleto", session, "Opção inválida para boletos");
+                } else {
+
+                    const token = await ItauApiService.GetToken();
+                    if (!token?.access_token) throw new Error('Não foi possível pegar um novo Token');
+
+                    const boletoRequest: BoletoDetalhesRequest = {
+                        id_beneficiario: '054800325679',
+                        codigo_carteira: boleto.codigoCarteira,
+                        nosso_numero: boleto.nosso_numero,
+                        BearerToken: token.access_token,
+                        view: 'full'
+                    }
+
+                    const detalhes = await ItauApiService.GetDetalhesBoleto(boletoRequest);
+
+                    const numero_linha_digitavel = detalhes?.data[0].dado_boleto.dados_individuais_boleto[0].numero_linha_digitavel;
+                    if (!numero_linha_digitavel) throw new Error('numero_linha_digitavel nao localizado');
+
+                    const boletoService = new ItauBoletoService();
 
 
+                    const dadosBanco = await Interaction.findByPk(session.interactionIdBd);
+
+                    if (!dadosBanco) throw Error('Não encontrei session.sessionDb.dadosClient')
+
+                    const { cnpj, cpf } = JSON.parse(dadosBanco.dadosClient || '{}');
+
+                    const request: BoletoRequest = {
+                        cpfCnpj: cnpj || cpf,
+                        codigoBarras: numero_linha_digitavel
+                    };
+
+                    const caminhoBoleto = await boletoService.downloadBoleto(request);
+
+                    if (!caminhoBoleto) throw new Error('caminhoBoleto não localizado');
+
+                    const formData = await XcallyApiService.createAttachment(caminhoBoleto);
+                    await XcallyApiService.sendDocumentToClient(session, formData);
+                }
+
+            } catch (error) {
+                console.log(error);
+
+            }
+
+            return { success: true }
+        }
     },
 };
 

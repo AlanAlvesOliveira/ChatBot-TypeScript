@@ -12,9 +12,18 @@ import { where } from "sequelize";
 import { osIp } from "../utils/osIp";
 import { ResultAction } from "../interfaces/ResultAction";
 
+
 export default class Session {
 
+    addBoletos(boletosFiltrados: { dataVencimento: string; valor: string; codigoCarteira: string; nosso_numero: string; }[]) {
+        this.boletos = boletosFiltrados;
+    }
 
+    getBoletos() {
+        return this.boletos;
+    }
+
+    private boletos?: { dataVencimento: string; valor: string; codigoCarteira: string; nosso_numero: string; }[];
 
     public interactionIdBd: number;
     public parsedData: ParsedData;
