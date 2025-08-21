@@ -37,6 +37,10 @@ export type ActionDefinition = {
     type: 'BaixarBoleto';
     aguardaResposta: boolean;
     params: undefined
+} | {
+    type: 'aguardaRespostaDiasValidos';
+    aguardaResposta: boolean;
+    params: RespostaParams;
 }
 
 

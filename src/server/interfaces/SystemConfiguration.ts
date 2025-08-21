@@ -17,6 +17,7 @@ export interface SystemConfiguration {
     };
 
     itau: {
+        id_beneficiario: string;
         url: string;
         clientId: string;
         clientSecret: string;

@@ -11,20 +11,14 @@ import steps from "./flows/flow_v1"
 import { where } from "sequelize";
 import { osIp } from "../utils/osIp";
 import { ResultAction } from "../interfaces/ResultAction";
+import { BoletosEmMemoria } from '../interfaces/itau/BoletosEmMemoria';
 
 
 export default class Session {
 
-    addBoletos(boletosFiltrados: { dataVencimento: string; valor: string; codigoCarteira: string; nosso_numero: string; }[]) {
-        this.boletos = boletosFiltrados;
-    }
 
-    getBoletos() {
-        return this.boletos;
-    }
 
-    private boletos?: { dataVencimento: string; valor: string; codigoCarteira: string; nosso_numero: string; }[];
-
+    private boletosEmMemoria?: BoletosEmMemoria;
     public interactionIdBd: number;
     public parsedData: ParsedData;
     public sessionDb: Interaction
@@ -320,5 +314,14 @@ export default class Session {
                 error: errorMessage
             };
         }
+    }
+
+    addBoletos(boletosFiltrados: BoletosEmMemoria) {
+        this.boletosEmMemoria = boletosFiltrados;
+
+    }
+
+    getBoletos() {
+        return this.boletosEmMemoria;
     }
 }

@@ -114,7 +114,7 @@ async function sincronizeTables(env: string): Promise<boolean> {
     try {
 
         if (env !== 'prod') {
-            await sequelize.sync({ alter: true }); // Desenvolvimento: ajusta as tabelas conforme os modelos
+            await sequelize.sync({ alter: false }); // Desenvolvimento: ajusta as tabelas conforme os modelos
             console.log('✅ Modelos sincronizados com o banco de dados (modo desenvolvimento).');
         } else if (env === 'prod') {
             await sequelize.sync({ alter: false }); // Produção: só cria se não existir, sem alterar

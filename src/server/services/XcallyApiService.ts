@@ -67,6 +67,9 @@ export default class XcallyApiService {
                 },
             });
 
+            fs.unlinkSync(caminhoDoPDF)
+            console.log(`arquivo removido ${caminhoDoPDF}`);
+
             console.log("response de createAttachment", response.data);
             return response.data;
         } catch (error) {

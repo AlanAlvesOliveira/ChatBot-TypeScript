@@ -531,7 +531,7 @@ que eu consulte seus boletos:
  4. Voltar ao menu anterior` },
                 },
                 {
-                    type: 'aguardaResposta',
+                    type: 'aguardaRespostaDiasValidos',
                     aguardaResposta: true,
                     params: {
                         'respostasValidas': [
@@ -549,14 +549,14 @@ que eu consulte seus boletos:
             actions: [
                 {
                     type: 'ListarBoletos',
-                    aguardaResposta: false,
-                    params: undefined
-                },
-                {
-                    type: 'BaixarBoleto',
                     aguardaResposta: true,
                     params: undefined
-                }
+                },
+                // {
+                //     type: 'BaixarBoleto',
+                //     aguardaResposta: true,
+                //     params: undefined
+                // }
             ]
         },
 
