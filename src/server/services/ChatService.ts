@@ -6,6 +6,7 @@ import actionRegistry from "../core/actionsRegistry";
 import { validaRespotaUsuario as validaRespostaUsuario } from "../core/useCases/validaResposta";
 import XcallyApiService from './XcallyApiService';
 import { VerificaExcessoInteracoes } from './VerificaExcessoInteracoes';
+import { ResultAction } from '../interfaces/ResultAction';
 
 export default class ChatService {
     static async flow(data: ParsedData): Promise<string> {
@@ -30,12 +31,13 @@ export default class ChatService {
             const actionsComResposta = currentStep.actions.filter(x => x.aguardaResposta);
             if (actionsComResposta.length > 1) throw new Error(`Encontrei mais de uma ação esperando resposta no step ${currentStep.stepId}`);
 
-
             const action = actionsComResposta[0];
 
             const actionHandler = actionRegistry[action.type];
-            const result = await actionHandler(session, action);
+            const result: ResultAction = await actionHandler(session, action);
+
             if (result.success && result.nextStep) {
+                console.log('-> alterando o nextStep ->', result.nextStep.stepId);
                 currentStep = result.nextStep;
             }
 

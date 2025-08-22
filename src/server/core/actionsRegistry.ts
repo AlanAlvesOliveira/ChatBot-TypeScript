@@ -1,3 +1,4 @@
+import { MenuRespostas } from './../interfaces/itau/BoletosEmMemoria';
 import { Interaction } from './../models/InteractionSession';
 import XcallyApiService from "../services/XcallyApiService";
 import Session from "./Session";
@@ -8,17 +9,12 @@ import { aguardaCpfOuCnpj } from "./useCases/aguardaCpfOuCnpj";
 import { aguardarNumeroNotafiscal } from "./useCases/aguardarNumeroNotafiscal";
 import ItauApiService from "../services/ItauApiService";
 import { BoletosRequest } from "../interfaces/itau/BoletosRequest";
-import { BoletoDetalhesRequest } from '../interfaces/itau/BoletoDetalhesRequest';
-import ItauBoletoService, { BoletoRequest } from '../services/ItauBoletoService';
-import { send } from 'process';
 import { Boleto, BoletosEmMemoria } from '../interfaces/itau/BoletosEmMemoria';
-import { getConfiguration } from '../utils/loadConfiguration';
-import { Index } from 'sequelize-typescript';
-const configJson = getConfiguration();
+import steps from "./flows/flow_v1"
+import { sendBoleToClient } from './useCases/sendBoletoClient';
 
 
-
-type ActionHandler = (session: Session, params: ActionDefinition | undefined) => Promise<ResultAction>;
+type ActionHandler = (session: Session, params: ActionDefinition) => Promise<ResultAction>;
 
 type ActionRegistry = {
     [Key in ActionDefinition["type"]]: ActionHandler
@@ -161,8 +157,6 @@ const actionRegistry: ActionRegistry = {
                 const token = await ItauApiService.GetToken();
                 if (!token?.access_token) throw new Error('Não foi possível pegar um novo Token');
 
-
-
                 const boleto = {
                     idBeneficiario: "054800325679", //composto de "${agencia}${conta}${dac}"
                     situacao: "aberto",
@@ -188,12 +182,18 @@ const actionRegistry: ActionRegistry = {
                     todosBoletos: todosBoletos,
                     paginaAtual: 1,
                     boletoSelecionado: undefined,
-                    boletosFiltrados: undefined
+                    boletosFiltrados: undefined,
+                    menuRespostas: []
+
                 }
 
                 console.log(`Adicionando boletos em memória -> ${JSON.stringify(boletosEmMemoria)}`);
                 session.addBoletos(boletosEmMemoria);
 
+            } else {
+                //limpa as resposta para construir um novo menu dinâmico
+                boletosEmMemoria.menuRespostas = [];
+                session.addBoletos(boletosEmMemoria);
             }
 
             let boletosFiltrados: Boleto[] | undefined;
@@ -220,6 +220,7 @@ const actionRegistry: ActionRegistry = {
             }
 
             let boletosPaginados;
+            const totalFiltradosAntesPaginacoa = boletosFiltrados?.length || 0
             if (boletosEmMemoria.paginaAtual !== -1) { //opção para mostrar tudo
                 boletosPaginados = paginar(boletosFiltrados, boletosEmMemoria.paginaAtual)
                 boletosFiltrados = boletosPaginados.boletosFiltrados;
@@ -230,12 +231,27 @@ const actionRegistry: ActionRegistry = {
 
 
             if (boletosFiltrados && boletosFiltrados.length <= 0) {
-                await XcallyApiService.SendMessage("ListarBoletos", session, 'Não tem boletos com os filtro selecionados');
+                await XcallyApiService.SendMessage("ListarBoletos", session, 'Não foram encontrados boletos para os filtros selecionados.');
+
                 return { success: true };
 
             } else if (boletosFiltrados && boletosFiltrados.length === 1) {
-                //todo
-                await XcallyApiService.SendMessage("ListarBoletos", session, '1 boleto encontrado');
+
+                //TODO, não testado
+                const msg = `Pronto! Localizei no meu sistema um boleto 
+com vencimento para o dia ${boletosFiltrados[0].dataVencimentoFormatada}, no 
+valor de ${boletosFiltrados[0].valor}. 
+
+Aguarde um momento.
+
+Abaixo, segue o 
+boleto para o pagamento:`
+
+                await XcallyApiService.SendMessage("Listaboleos : Um boleto encontrado", session, msg);
+                await sendBoleToClient(session, boletosFiltrados[0].codigoCarteira, boletosFiltrados[0].nosso_numero);
+                const nextStep = steps.steps.find(x => x.stepId === 'end');
+                return { success: true, nextStep }
+
             } else if (boletosFiltrados && boletosFiltrados.length === 1) {
                 //todo
                 await XcallyApiService.SendMessage("ListarBoletos", session, '1 boleto encontrado');
@@ -243,59 +259,125 @@ const actionRegistry: ActionRegistry = {
 
 
 
-                let msg = `Pronto! Localizei ${boletosFiltrados.length} ${tipoBoletoSolicitado} boletos no meu sistema. Por favor, selecione qual boleto você deseja: \n\n`;
+
+                boletosEmMemoria.menuRespostas?.push({
+                    valor: "ignorar",
+                    texto: `Pronto! Localizei ${totalFiltradosAntesPaginacoa} boletos ${tipoBoletoSolicitado} no meu sistema. Por favor, selecione qual boleto você deseja: \n\n`,
+                    action: async () => {
+                        return { success: true }
+                    }
+                });
+
                 for (let index = 0; index < boletosFiltrados.length; index++) {
                     const element = boletosFiltrados[index];
-                    msg += `${index + 1}. ${element.dataVencimentoFormatada} no valor de ${element.valor}\n`
-                }
-                msg += `${boletosPaginados && boletosPaginados.hasNext ? '4. Outras Opções' : ''}
-${boletosEmMemoria.paginaAtual !== -1 ? '5. Todos os boletos' : ''}
-${boletosEmMemoria.paginaAtual !== -1 ? '\n6. Voltar ao menu anterior' : ''}`
-                msg += `${boletosEmMemoria.paginaAtual === -1 ? `\n${boletosFiltrados.length + 1}. Voltar ao menu anterior` : ''}`
+                    const key = `${index + 1}`
+                    boletosEmMemoria.menuRespostas?.push({
+                        valor: key,
+                        texto: `${index + 1}. ${element.dataVencimentoFormatada} no valor de ${element.valor}\n`,
+                        action: async () => {
 
-                //${boletosEmMemoria.paginaAtual !=== -1 ? '${boletosFiltrados.length + 1}' : '${Voltar ao menu anterior}'
-                //console.log('chegeui aqui ===> ', boletosProximos7Dias);
-                await XcallyApiService.SendMessage("ListarBoletos", session, msg);
+                            await AtualizaBd(session, '1_2_1_1_1_1_2_1_1');
+                            boletosEmMemoria.boletoSelecionado = boletosFiltrados[index];
+                            session.addBoletos(boletosEmMemoria);
+                            await session.updateAguardandoResposta(false);
+                            const nextStep = await session.getCurrentStep();
+                            return { success: true, nextStep }
+                        }
+                    });
+                }
+
+                if (boletosPaginados && boletosPaginados.hasNext) {
+                    boletosEmMemoria.menuRespostas?.push({
+                        valor: '4',
+                        texto: `\n4. Outras Opções`,
+                        action: async () => {
+                            boletosEmMemoria.paginaAtual = boletosEmMemoria.paginaAtual + 1;
+                            session.addBoletos(boletosEmMemoria);
+                            await session.updateAguardandoResposta(false);
+                            return { success: true }
+                        }
+                    });
+                }
+
+                if (boletosEmMemoria.paginaAtual !== -1) {
+                    boletosEmMemoria.menuRespostas?.push({
+                        valor: '5',
+                        texto: `\n5. Todos os boletos`,
+                        action: async () => {
+                            boletosEmMemoria.paginaAtual = -1;
+                            session.addBoletos(boletosEmMemoria);
+                            return await session.updateAguardandoResposta(false);
+                        }
+                    });
+                    boletosEmMemoria.menuRespostas?.push({
+                        valor: '6',
+                        texto: `\n6. Voltar ao menu anterior`,
+                        action: async () => {
+                            //todo ver o caso do outros tipos de boleto
+                            await AtualizaBd(session, '1_2_1_1_1_1_2');
+                            await session.updateAguardandoResposta(false);
+                            const nextStep = await session.getCurrentStep();
+                            return { success: true, nextStep }
+                        }
+                    });
+                }
+
+                if (boletosEmMemoria.paginaAtual === -1) {
+                    const key = `${boletosFiltrados.length + 1}`
+                    boletosEmMemoria.menuRespostas?.push({
+                        valor: key,
+                        texto: `\n${key}. Voltar ao menu anterior`,
+                        action: async () => {
+                            //todo ver o caso do outros tipos de boleto
+                            const statusAntigo = session.sessionDb.statusAntigo;
+                            if (!statusAntigo) throw new Error('Não foi possível localizar o status antigo');
+                            await AtualizaBd(session, statusAntigo);
+                            await session.updateAguardandoResposta(false);
+                            const nextStep = await session.getCurrentStep();
+                            return { success: true, nextStep }
+                        }
+                    });
+                }
+
+
+                if (boletosEmMemoria.menuRespostas && boletosEmMemoria.menuRespostas.length > 0) {
+                    const grandeString = boletosEmMemoria.menuRespostas
+                        .map(menu => menu.texto)
+                        .join('');
+
+                    await XcallyApiService.SendMessage("ListarBoletos", session, grandeString);
+                } else {
+                    throw new Error('Ocorreu algum erro para juntar as respotas')
+                }
+
             }
 
         } else {
 
+
             let boletosEmMemoria: BoletosEmMemoria | undefined = session.getBoletos();
-            if (!boletosEmMemoria) throw new Error('')
+
+
+            if (!boletosEmMemoria) throw new Error('boletosEmMemoria')
             const boletosFiltrados = boletosEmMemoria.boletosFiltrados
-            if (!boletosFiltrados) throw new Error('')
+            if (!boletosFiltrados) throw new Error('boletosFiltrados')
+            const nextStep = steps.steps.find(x => x.stepId === '1_2_1_1_1_1_2_1_1');
 
-            switch (session.parsedData.messageFromClient) {
-                case '1':
-                    //pega boleto 1
-                    boletosEmMemoria.boletoSelecionado = boletosFiltrados[0]
-                    return
-                    break;
-                case '2':
-                    //pega boleto 2
-                    boletosEmMemoria.boletoSelecionado = boletosFiltrados[1]
-                    break;
-                case '3':
-                    //pega boleto 3
-                    boletosEmMemoria.boletoSelecionado = boletosFiltrados[2]
-                    break;
-                case '4':
-                    //pega boleto mais tres boletos
-                    boletosEmMemoria.paginaAtual = boletosEmMemoria.paginaAtual + 1;
-                    session.addBoletos(boletosEmMemoria);
-                    return await session.updateAguardandoResposta(false);
-                case '5':
-                    boletosEmMemoria.paginaAtual = -1;
-                    session.addBoletos(boletosEmMemoria);
-                    return await session.updateAguardandoResposta(false);
-                case '6':
-                    await XcallyApiService.SendMessage('', session, 'Voltar ao meneu anterior');
-                    break;
-                default:
-                    await XcallyApiService.SendMessage('', session, 'Opção inválida!');
-                    break;
+            if (!nextStep) throw new Error('nao encontrei step 1_2_1_1_1_1_2_1_1');
+            console.log('$$$$$$$$ newStep ', nextStep.stepId);
+
+            const respostaUsuario = session.parsedData.messageFromClient;
+            const opcaoEncontrada = boletosEmMemoria.menuRespostas?.find(menu =>
+                menu.valor === respostaUsuario
+            );
+
+            if (opcaoEncontrada) {
+                console.log(JSON.stringify(opcaoEncontrada))
+                console.log('Resposta válida encontrada!');
+                return await opcaoEncontrada.action()
+            } else {
+                await XcallyApiService.SendMessage('Lista', session, 'Resposta inválida no menu boletos');
             }
-
 
         }
         return { success: true }
@@ -305,7 +387,7 @@ ${boletosEmMemoria.paginaAtual !== -1 ? '\n6. Voltar ao menu anterior' : ''}`
 
         console.log('-----------> entrei em BaixarBoleto')
 
-        if (!session.sessionDb.aguardandoResposta) {
+        if (false) {
             console.log('-----------> entrei em BaixarBoleto setei uguardando resposta')
             return await session.updateAguardandoResposta(true);
         } else {
@@ -320,43 +402,7 @@ ${boletosEmMemoria.paginaAtual !== -1 ? '\n6. Voltar ao menu anterior' : ''}`
                 if (!boleto) {
                     await XcallyApiService.SendMessage("BaixarBoleto", session, "Opção inválida para boletos");
                 } else {
-
-                    const token = await ItauApiService.GetToken();
-                    if (!token?.access_token) throw new Error('Não foi possível pegar um novo Token');
-
-                    const boletoRequest: BoletoDetalhesRequest = {
-                        id_beneficiario: configJson.itau.id_beneficiario,
-                        codigo_carteira: boleto.codigoCarteira,
-                        nosso_numero: boleto.nosso_numero,
-                        BearerToken: token.access_token,
-                        view: 'full'
-                    }
-
-                    const detalhes = await ItauApiService.GetDetalhesBoleto(boletoRequest);
-
-                    const numero_linha_digitavel = detalhes?.data[0].dado_boleto.dados_individuais_boleto[0].numero_linha_digitavel;
-                    if (!numero_linha_digitavel) throw new Error('numero_linha_digitavel nao localizado');
-
-                    const boletoService = new ItauBoletoService();
-
-                    const dadosBanco = await Interaction.findByPk(session.interactionIdBd);
-
-                    if (!dadosBanco) throw Error('Não encontrei session.sessionDb.dadosClient')
-
-                    const { cnpj, cpf } = JSON.parse(dadosBanco.dadosClient || '{}');
-
-                    const request: BoletoRequest = {
-                        cpfCnpj: cnpj || cpf,
-                        codigoBarras: numero_linha_digitavel
-                    };
-
-                    console.log('detalhes -> ', request)
-                    const caminhoBoleto = await boletoService.downloadBoleto(request);
-
-                    if (!caminhoBoleto) throw new Error('caminhoBoleto não localizado');
-
-                    const formData = await XcallyApiService.createAttachment(caminhoBoleto);
-                    await XcallyApiService.sendDocumentToClient(session, formData);
+                    await sendBoleToClient(session, boleto.codigoCarteira, boleto.nosso_numero);
                 }
 
             } catch (error) {
@@ -368,6 +414,15 @@ ${boletosEmMemoria.paginaAtual !== -1 ? '\n6. Voltar ao menu anterior' : ''}`
         }
     },
 };
+
+async function AtualizaBd(session: Session, nextStep: string) {
+    console.log('-> atualizando bd')
+    session.sessionDb.statusAntigo = session.sessionDb.sessionStatus;
+    session.sessionDb.sessionStatus = nextStep;
+    session.sessionDb.aguardandoResposta = false;
+    session.sessionDb.countAnswerError = 0;
+    await session.sessionDb.save();
+}
 
 function paginar(boletosFiltrados: Boleto[], paginaAtual: number) {
     const itensPorPagina = 3;

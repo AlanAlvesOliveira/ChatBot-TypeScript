@@ -552,11 +552,23 @@ que eu consulte seus boletos:
                     aguardaResposta: true,
                     params: undefined
                 },
-                // {
-                //     type: 'BaixarBoleto',
-                //     aguardaResposta: true,
-                //     params: undefined
-                // }
+            ]
+        },
+        {
+            stepId: '1_2_1_1_1_1_2_1_1',
+            actions: [
+                {
+                    type: 'enviaMensagem',
+                    aguardaResposta: false,
+                    params: {
+                        'conteudo': `Aguarde um momento`
+                    },
+                },
+                {
+                    type: 'BaixarBoleto',
+                    aguardaResposta: false,
+                    params: undefined
+                }
             ]
         },
 
