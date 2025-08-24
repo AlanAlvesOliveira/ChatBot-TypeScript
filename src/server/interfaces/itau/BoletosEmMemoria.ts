@@ -6,6 +6,7 @@ export interface BoletosEmMemoria {
     paginaAtual: number
     boletoSelecionado?: Boleto
     menuRespostas: MenuRespostas[];
+    menuAnterior: string;
 }
 export interface MenuRespostas {
     texto: string;           // Texto que será exibido
@@ -17,6 +18,7 @@ export interface Boleto {
     dataVencimento: Date
     valor: string;
     codigoCarteira: string;
+    seuNumero: string
     nosso_numero: string;
     dataEmissao: Date;
     dataEntrada: Date;

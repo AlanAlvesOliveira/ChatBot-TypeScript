@@ -13,7 +13,7 @@ export default class ChatService {
 
         const excessoDeInteracoes = await VerificaExcessoInteracoes(data.contactId);
         //não está filtrando corretamente
-        console.log('excessoDeInteracoes -> ', excessoDeInteracoes)
+        //console.log('excessoDeInteracoes -> ', excessoDeInteracoes)
 
         if (excessoDeInteracoes && excessoDeInteracoes.maximoAtingido) {
             console.log(`[WARNING] Excesso de interações detectado para ${excessoDeInteracoes}`,);
@@ -29,7 +29,7 @@ export default class ChatService {
 
 
             const actionsComResposta = currentStep.actions.filter(x => x.aguardaResposta);
-            if (actionsComResposta.length > 1) throw new Error(`Encontrei mais de uma ação esperando resposta no step ${currentStep.stepId}`);
+            if (actionsComResposta.length !== 1) throw new Error(`Encontrei mais de uma ação esperando resposta no step ${currentStep.stepId}`);
 
             const action = actionsComResposta[0];
 

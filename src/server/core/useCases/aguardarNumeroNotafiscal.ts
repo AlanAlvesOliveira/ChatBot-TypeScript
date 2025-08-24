@@ -1,23 +1,45 @@
-import { ResultAction } from "../../interfaces/ResultAction";
+import { StoredStep } from "../../interfaces/StoredStep";
 import XcallyApiService from "../../services/XcallyApiService";
 import Session from "../Session";
 
-export async function aguardarNumeroNotafiscal(session: Session): Promise<ResultAction | undefined> {
+export async function aguardarNumeroNotafiscal(session: Session, nextStep: string): Promise<StoredStep | undefined> {
+    const msg = session.parsedData.messageFromClient;
 
-    const numeroNota = session.parsedData.messageFromClient;
+    if (!ValidaNotaFiscal(msg)) {
 
-    //testa nova numeroNotafisca
-    const notaLocaliada = true;
-    if (!notaLocaliada) {
+        session.sessionDb.countAnswerError++;
+        await session.sessionDb.save();
 
+        if (session.sessionDb.countAnswerError > 2) {
+            await XcallyApiService.SendMessage("flow - aguardaCpfOuCnpj", session, `Olha, como não consegui validar a nota fiscal, estou te transferindo para um dos nossos colaboradores.`);
+            await session.encaminhaFila('queue');
+        } else {
+            await XcallyApiService.SendMessage('aguardaCpfOuCnpj', session, `Desculpa, mas o dado informado está 
+invalido.  Vamos tentar novamente?
 
+Informe o numero da nota fiscal (somente números), apenas números,  
+para que eu possa consultar seus boletos...`);
+        }
+
+        return; //não faz mais nada
+    }
+
+    session.sessionDb.countAnswerError = 0;
+    await session.sessionDb.save();
+
+    await session.updateDadosDatabase({ notaFiscal: msg });
+
+    const result = await session.updateStatusInBd(nextStep);
+    if (result.success) {
+        return session.getCurrentStep();
+    } else {
+        console.log('não consegui achar no novo passo no aguarda cpf ou cnpj (nota fiscal)')
+        return undefined;
 
     }
-    const dia = '';
-    const valor = '';
+}
 
-    await XcallyApiService.SendMessage('aguardarNumeroNotafiscal', session, `Pronto! Localizei no meu sistema um boleto com vencimento para o dia ${dia}, no valor de ${valor}.  Abaixo, segue o boleto para o pagamento`)
-    //envia boleto para xcally;
-    //finaliza
-    return;
+function ValidaNotaFiscal(nota: string) {
+    //TODO
+    return true;
 }

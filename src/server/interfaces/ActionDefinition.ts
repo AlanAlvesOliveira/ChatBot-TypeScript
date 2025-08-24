@@ -12,7 +12,7 @@ export type ActionDefinition = {
 } | {
     type: 'aguardaCpfOuCnpj';
     aguardaResposta: boolean;
-    params: Cpf;
+    params: NextStep;
 } | {
     type: 'encerrarInteracao';
     aguardaResposta: boolean;
@@ -24,7 +24,7 @@ export type ActionDefinition = {
 } | {
     type: 'aguardarNumeroNotafiscal';
     aguardaResposta: boolean;
-    params: undefined;
+    params: NextStep;
 } | {
     type: 'aguardarFiltroDias';
     aguardaResposta: boolean;
@@ -60,6 +60,6 @@ interface MensagemParams {
     conteudo: string;
 }
 
-interface Cpf {
+interface NextStep {
     nextStep: string;
 }

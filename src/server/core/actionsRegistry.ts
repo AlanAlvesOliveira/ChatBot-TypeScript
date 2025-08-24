@@ -63,8 +63,8 @@ const actionRegistry: ActionRegistry = {
         if (!session.sessionDb.aguardandoResposta) {
             return await session.updateAguardandoResposta(true);
         } else {
-            await aguardarNumeroNotafiscal(session);
-            return { success: true }
+            const nextStep = await aguardarNumeroNotafiscal(session, args.params.nextStep);
+            return { success: true, nextStep }
         }
     },
     "aguardarFiltroDias": async (session, args) => {
@@ -147,8 +147,9 @@ const actionRegistry: ActionRegistry = {
             const dadosBanco = await Interaction.findByPk(session.interactionIdBd);
             if (!dadosBanco) throw Error('Não encontrei session.sessionDb.dadosClient')
 
-            const { cnpj, cpf, tipoBoletoSolicitado } = JSON.parse(dadosBanco.dadosClient || '{}');
+            const { cnpj, cpf, tipoBoletoSolicitado, notaFiscal } = JSON.parse(dadosBanco.dadosClient || '{}');
 
+            console.log(`-> filtros [cnpj, ${cnpj},cpf ${cpf},tipoBoletoSolicitado ${tipoBoletoSolicitado},noteFiscal ${notaFiscal}]`);
 
             let boletosEmMemoria: BoletosEmMemoria | undefined = session.getBoletos();
 
@@ -173,7 +174,9 @@ const actionRegistry: ActionRegistry = {
                     dataEntrada: new Date(boleto.dataEntrada),
                     valor: formatarMoeda(boleto.valor),
                     codigoCarteira: boleto.codigoCarteira,
-                    nosso_numero: boleto.nossoNumero
+                    nosso_numero: boleto.nossoNumero,
+                    seuNumero: boleto.seuNumero,
+
                 }))
                     //ordena de modo crescente
                     .sort((a, b) => a.dataVencimento.getTime() - b.dataVencimento.getTime());
@@ -183,8 +186,8 @@ const actionRegistry: ActionRegistry = {
                     paginaAtual: 1,
                     boletoSelecionado: undefined,
                     boletosFiltrados: undefined,
-                    menuRespostas: []
-
+                    menuRespostas: [],
+                    menuAnterior: session.sessionDb.statusAntigo || ''
                 }
 
                 console.log(`Adicionando boletos em memória -> ${JSON.stringify(boletosEmMemoria)}`);
@@ -196,26 +199,46 @@ const actionRegistry: ActionRegistry = {
                 session.addBoletos(boletosEmMemoria);
             }
 
-            let boletosFiltrados: Boleto[] | undefined;
+            let boletosFiltrados: Boleto[] = boletosEmMemoria.todosBoletos;
 
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0);
 
 
-            switch (tipoBoletoSolicitado) {
-                case 'a vencer':
-                    const dataCalculada = CalcularData(dadosBanco);
-                    boletosFiltrados = boletosEmMemoria?.todosBoletos.filter(boleto => {
-                        return boleto.dataVencimento >= hoje && boleto.dataVencimento <= dataCalculada;
-                    });
-                    break;
-                case 'atrasados':
-                    boletosFiltrados = boletosEmMemoria?.todosBoletos.filter(boleto => {
-                        return boleto.dataVencimento <= hoje;
-                    });
-                    break;
-                default:
-                    throw new Error('ListarBoletos tipoBoletoSolicitado não encontrada ');
+            if (!notaFiscal && tipoBoletoSolicitado) {
+                switch (tipoBoletoSolicitado) {
+                    case 'a vencer':
+                        const dataCalculada = CalcularData(dadosBanco);
+                        if (dataCalculada) {
+                            boletosFiltrados = boletosEmMemoria?.todosBoletos.filter(boleto => {
+                                return boleto.dataVencimento >= hoje && boleto.dataVencimento <= dataCalculada;
+                                //return dataCalculada <= boleto.dataEntrada;
+                                //return dataCalculada <= boleto.dataEmissao;
+                            });
+                        } else {
+                            boletosFiltrados = boletosEmMemoria?.todosBoletos.filter(boleto => {
+                                return boleto.dataVencimento >= hoje;
+                            });
+                        }
+                        break;
+                    case 'atrasados':
+                        boletosFiltrados = boletosEmMemoria?.todosBoletos.filter(boleto => {
+                            return boleto.dataVencimento <= hoje;
+                            //return boleto.dataEntrada <= hoje;
+                            //return boleto.dataEmissao <= hoje;
+                        });
+                        break;
+                    default:
+                        //boletosFiltrados = boletosEmMemoria?.todosBoletos;
+                        throw new Error('ListarBoletos tipoBoletoSolicitado não encontrada ');
+                }
+            }
+
+
+            if (notaFiscal) {
+                boletosFiltrados = boletosEmMemoria?.todosBoletos.filter(boleto => {
+                    return boleto.seuNumero.includes(notaFiscal);
+                });
 
             }
 
@@ -273,10 +296,11 @@ boleto para o pagamento:`
                     const key = `${index + 1}`
                     boletosEmMemoria.menuRespostas?.push({
                         valor: key,
-                        texto: `${index + 1}. ${element.dataVencimentoFormatada} no valor de ${element.valor}\n`,
+                        texto: `${index + 1}. *${element.dataVencimentoFormatada}* no valor de *${element.valor}*\n`,
                         action: async () => {
 
-                            await AtualizaBd(session, '1_2_1_1_1_1_2_1_1');
+                            const actionBaixarBoleto = '1_2_1_1_1_1_2_1_1';
+                            await AtualizaBd(session, actionBaixarBoleto); //menu 
                             boletosEmMemoria.boletoSelecionado = boletosFiltrados[index];
                             session.addBoletos(boletosEmMemoria);
                             await session.updateAguardandoResposta(false);
@@ -299,7 +323,7 @@ boleto para o pagamento:`
                     });
                 }
 
-                if (boletosEmMemoria.paginaAtual !== -1) {
+                if (boletosEmMemoria && boletosEmMemoria.paginaAtual !== -1 && (boletosPaginados && boletosPaginados.hasNext)) {
                     boletosEmMemoria.menuRespostas?.push({
                         valor: '5',
                         texto: `\n5. Todos os boletos`,
@@ -309,12 +333,15 @@ boleto para o pagamento:`
                             return await session.updateAguardandoResposta(false);
                         }
                     });
+                }
+
+                if (boletosEmMemoria && boletosEmMemoria.paginaAtual !== -1) {
                     boletosEmMemoria.menuRespostas?.push({
                         valor: '6',
                         texto: `\n6. Voltar ao menu anterior`,
                         action: async () => {
                             //todo ver o caso do outros tipos de boleto
-                            await AtualizaBd(session, '1_2_1_1_1_1_2');
+                            await AtualizaBd(session, boletosEmMemoria.menuAnterior);
                             await session.updateAguardandoResposta(false);
                             const nextStep = await session.getCurrentStep();
                             return { success: true, nextStep }
@@ -358,9 +385,9 @@ boleto para o pagamento:`
             let boletosEmMemoria: BoletosEmMemoria | undefined = session.getBoletos();
 
 
-            if (!boletosEmMemoria) throw new Error('boletosEmMemoria')
+            if (!boletosEmMemoria) throw new Error('não encontrei boletosEmMemoria')
             const boletosFiltrados = boletosEmMemoria.boletosFiltrados
-            if (!boletosFiltrados) throw new Error('boletosFiltrados')
+            if (!boletosFiltrados) throw new Error('não enconrei boletosFiltrados em memoria')
             const nextStep = steps.steps.find(x => x.stepId === '1_2_1_1_1_1_2_1_1');
 
             if (!nextStep) throw new Error('nao encontrei step 1_2_1_1_1_1_2_1_1');
@@ -376,9 +403,14 @@ boleto para o pagamento:`
                 console.log('Resposta válida encontrada!');
                 return await opcaoEncontrada.action()
             } else {
-                await XcallyApiService.SendMessage('Lista', session, 'Resposta inválida no menu boletos');
+                //TODO, TESTAR
+                await XcallyApiService.SendMessage('Lista', session, ` Olha, como não consegui entender a sua 
+solicitação, vou te transferir para um dos 
+nossos colaboradores...`);
+                await AtualizaBd(session, 'queue');
+                const nextStep = await session.getCurrentStep();
+                return { success: true, nextStep }
             }
-
         }
         return { success: true }
     },
@@ -387,30 +419,85 @@ boleto para o pagamento:`
 
         console.log('-----------> entrei em BaixarBoleto')
 
-        if (false) {
-            console.log('-----------> entrei em BaixarBoleto setei uguardando resposta')
-            return await session.updateAguardandoResposta(true);
-        } else {
-            try {
-                const opcao = parseInt(session.parsedData.messageFromClient);
+        if (!session.sessionDb.aguardandoResposta) {
 
+            try {
                 const boletos = session.getBoletos();
-                console.log(`boletos em memória ${JSON.stringify(boletos)} `)
                 if (!boletos) throw new Error('sem boletos em memoria')
                 const boleto = boletos.boletoSelecionado;
-                console.log(`boleto selecionado ${JSON.stringify(boleto)} `)
+                console.log(`boleto selecionado para impressão ${JSON.stringify(boleto)} `)
                 if (!boleto) {
-                    await XcallyApiService.SendMessage("BaixarBoleto", session, "Opção inválida para boletos");
+                    await XcallyApiService.SendMessage("BaixarBoleto", session, "Ocorreu algum erro na impressão do boleto");
                 } else {
                     await sendBoleToClient(session, boleto.codigoCarteira, boleto.nosso_numero);
+                    const boletos = session.getBoletos();
+
+                    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+                    if (boletos?.boletosFiltrados?.length && boletos?.boletosFiltrados?.length > 1) {
+                        await XcallyApiService.SendMessage('BaixarBoleto:', session, ` Você deseja emitir outro boleto?
+ 1. Sim
+ 2. Não`);
+                    } else {
+                        await XcallyApiService.SendMessage('BaixarBoleto:', session, `Sua solicitação foi resolvida?
+ 1. Sim
+ 2. Não` );
+                    }
                 }
-
+                await session.updateAguardandoResposta(true);
+                return { success: true }
             } catch (error) {
-                console.log(error);
-
+                console.log(error)
+                await XcallyApiService.SendMessage("BaixarBoleto", session, "Infelizmente ocorreu algum erro na impressão do boleto");
+                return { success: false }
             }
 
-            return { success: true }
+        } else {
+            console.log('entrei no else do Baixar boleto')
+
+            const reposta = session.parsedData.messageFromClient;
+            switch (reposta) {
+                case '1': {
+                    //TODO TESTAR
+                    await XcallyApiService.SendMessage('', session, `Obrigado pela atenção! Tchau!`);
+                    await AtualizaBd(session, 'end');
+                    const nextStep = await session.getCurrentStep();
+                    return { success: true, nextStep }
+                }
+
+                case '2': {
+                    //TODO TESTAR
+                    await XcallyApiService.SendMessage('', session, `Aguarde enquanto transferimos`);
+                    await AtualizaBd(session, 'queue');
+                    const nextStep = await session.getCurrentStep();
+                    return { success: true, nextStep }
+                }
+
+                default: {
+                    //TODO TESTAR
+                    session.sessionDb.countAnswerError++
+                    await session.sessionDb.save();
+
+                    if (session.sessionDb.countAnswerError >= 2) {
+                        await XcallyApiService.SendMessage('', session, ` Olha, como não consegui entender a sua 
+solicitação, vou te transferir para um dos 
+nossos colaboradores...`);
+                        await AtualizaBd(session, 'queue');
+                        const nextStep = await session.getCurrentStep();
+                        return { success: true, nextStep }
+                    } else {
+                        await XcallyApiService.SendMessage('', session, `Desculpa, mas o dado informado está invalido.  Vamos 
+tentar novamente?
+
+ Posso te ajudar com algo mais?
+ 1. Sim
+ 2. Não`);
+                        return { success: true }
+                    }
+                }
+
+
+            }
         }
     },
 };
@@ -445,7 +532,7 @@ function paginar(boletosFiltrados: Boleto[], paginaAtual: number) {
     };
 }
 
-function CalcularData(interactionBd: Interaction): Date {
+function CalcularData(interactionBd: Interaction): Date | undefined {
 
 
     const dataCalculada = new Date();
@@ -470,7 +557,8 @@ function CalcularData(interactionBd: Interaction): Date {
             dataCalculada.setDate(dataCalculada.getDate() + 30);
             break;
         default:
-            throw new Error('Não foi possível CalcularData')
+            console.log('-> Não foi possível CalcularData')
+            return undefined;
     }
     return dataCalculada;
 }

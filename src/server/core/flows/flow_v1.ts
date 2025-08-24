@@ -392,9 +392,9 @@ Digite a opção desejada:
 
 Digite a opção desejada:
 
-1 - *Boletos A Vencer*
-2 - *Boletos Em Atraso*
-3 - *Supplier (Compra Fácil)*`}
+1 - Boletos *A Vencer*
+2 - Boletos *Em Atraso*
+3 - Supplier (Compra Fácil)`}
                 },
                 {
                     type: 'aguardarFiltroDias',
@@ -448,7 +448,7 @@ deseja realizar um filtro? Você pode:
                         'respostasValidas': [
                             { respostaValue: "1", nextStepId: "1_2_1_1_1_1_1" },
                             { respostaValue: "2", nextStepId: "1_2_1_1_1_1_2" },
-                            { respostaValue: "3", nextStepId: "1_2_1_1_1_1_3" },
+                            { respostaValue: "3", nextStepId: "1_2_1_1_1_1_2_1" },
                         ]
                     }
                 }
@@ -467,7 +467,7 @@ fiscal que você deseja consultar...` },
                 {
                     type: 'aguardarNumeroNotafiscal',
                     aguardaResposta: true,
-                    params: undefined
+                    params: { 'nextStep': `1_2_1_1_1_1_2_1` }
                 }
             ]
         },
@@ -525,9 +525,9 @@ deseja realizar um filtro? Você pode:
                     params: {
                         'conteudo': `Certo! Me informe qual o período que você deseja 
 que eu consulte seus boletos:
- 1. Últimos 7 dias
- 2. Últimos 15 dias
- 3. Últimos 30 dias
+ 1. Próximos *7 dias*
+ 2. Próximos *15 dias*
+ 3. Próximos *30 dias*
  4. Voltar ao menu anterior` },
                 },
                 {
@@ -566,7 +566,7 @@ que eu consulte seus boletos:
                 },
                 {
                     type: 'BaixarBoleto',
-                    aguardaResposta: false,
+                    aguardaResposta: true,
                     params: undefined
                 }
             ]
