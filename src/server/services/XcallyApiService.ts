@@ -7,18 +7,19 @@ import { ResultAction } from "../interfaces/ResultAction";
 import returnQtdInteractions from "../interfaces/xcally/returnQtdInteractions";
 import fs from 'fs';
 import FormData from 'form-data';
+import path from 'path';
 
 
 const configJson = getConfiguration();
 
 export default class XcallyApiService {
 
-    static async sendDocumentToClient(sessionData: Session, formData: any) {
+    static async sendDocumentToClient(sessionData: Session, dados: any) {
 
         try {
             const data = {
-                body: formData.name,
-                AttachmentId: formData.id,
+                body: dados.nomeArquivo,
+                AttachmentId: dados.data.id,
                 OpenchannelAccountId: sessionData.getSessionData().accountId,
                 OpenchannelInteractionId: sessionData.getSessionData().interactionId,
                 direction: "out",
@@ -59,7 +60,8 @@ export default class XcallyApiService {
         const formData = new FormData();
 
         try {
-            formData.append('file', fs.createReadStream(caminhoDoPDF));
+            const nomeArquivo = path.basename(caminhoDoPDF);
+            formData.append('file', fs.createReadStream(caminhoDoPDF), nomeArquivo);
 
             const response = await axios.post(URL, formData, {
                 headers: {
@@ -67,11 +69,14 @@ export default class XcallyApiService {
                 },
             });
 
-            fs.unlinkSync(caminhoDoPDF)
+            fs.unlinkSync(caminhoDoPDF);
+
             console.log(`arquivo removido ${caminhoDoPDF}`);
 
-            console.log("response de createAttachment", response.data);
-            return response.data;
+            return {
+                data: response.data,
+                nomeArquivo: nomeArquivo
+            };
         } catch (error) {
             console.log("[ERROR] ~ createAttachment " + formData + " ~ error:", error);
 

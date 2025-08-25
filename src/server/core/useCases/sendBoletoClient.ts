@@ -44,8 +44,8 @@ export async function sendBoleToClient(session: Session, codigoCarteira: string,
 
         if (!caminhoBoleto) throw new Error('caminhoBoleto não localizado');
 
-        const formData = await XcallyApiService.createAttachment(caminhoBoleto);
-        await XcallyApiService.sendDocumentToClient(session, formData);
+        const createAttachmentResult = await XcallyApiService.createAttachment(caminhoBoleto);
+        await XcallyApiService.sendDocumentToClient(session, createAttachmentResult);
     } catch (error) {
         console.log('[ERRO] imprimirBoleto ', error);
         await XcallyApiService.SendMessage("imprimirBoleto", session, "Ocorreu algum erro na impressão do boleto.");
