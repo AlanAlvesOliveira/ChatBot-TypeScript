@@ -1,6 +1,7 @@
 import { sequelize } from "../../database/config";
 import { ResultAction } from "../../interfaces/ResultAction";
 import { StoredStep } from "../../interfaces/StoredStep";
+import { Tags } from "../../models/XcallyTags/Tags";
 import XcallyApiService from "../../services/XcallyApiService";
 import { cnpjValido } from "../../utils/cnpjValido";
 import { cpfValido } from "../../utils/cpfValido";
@@ -18,6 +19,7 @@ export const aguardaCpfOuCnpj = async (session: Session, nextStep: string): Prom
 
         if (session.sessionDb.countAnswerError > 2) {
             await XcallyApiService.SendMessage("flow - aguardaCpfOuCnpj", session, `Olha, como não consegui validar o CPF/CNPJ, estou te transferindo para um dos nossos colaboradores.`);
+            await XcallyApiService.addTag(session, Tags.OCORRENCIA_BOLETOS_CPF_CNPJ_INVALIDO);
             await session.encaminhaFila('queue');
         } else {
             await XcallyApiService.SendMessage('aguardaCpfOuCnpj', session, `Desculpa, mas o dado informado está 

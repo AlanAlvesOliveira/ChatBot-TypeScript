@@ -12,6 +12,7 @@ import { BoletosRequest } from "../interfaces/itau/BoletosRequest";
 import { Boleto, BoletosEmMemoria } from '../interfaces/itau/BoletosEmMemoria';
 import steps from "./flows/flow_v1"
 import { sendBoleToClient } from './useCases/sendBoletoClient';
+import { Tags } from '../models/XcallyTags/Tags';
 
 
 type ActionHandler = (session: Session, params: ActionDefinition) => Promise<ResultAction>;
@@ -176,6 +177,7 @@ const actionRegistry: ActionRegistry = {
  CNPJ, estou te transferindo para um dos 
 nossos colaboradores. `);
                     await AtualizaBd(session, 'queue');
+                    await XcallyApiService.addTag(session, Tags.OCORRENCIA_BOLETOS_CPF_CNPJ_FORA_DA_BASE);
                     const nextStep = await session.getCurrentStep();
                     return { success: true, nextStep }
                 }
@@ -476,6 +478,7 @@ nossos colaboradores...`);
                             action: async () => {
                                 //TODO TESTAR
                                 await XcallyApiService.SendMessage('', session, `Obrigado pela atenção! Tchau!`);
+                                await XcallyApiService.addTag(session, Tags.OCORRENCIA_BOLETOS_SOLICITAÇAO_FINALIZADA)
                                 await AtualizaBd(session, 'end');
                                 const nextStep = await session.getCurrentStep();
                                 return { success: true, nextStep }
@@ -500,6 +503,7 @@ nossos colaboradores...`);
                             action: async () => {
                                 //todo encerrar
                                 await XcallyApiService.SendMessage('', session, `Obrigado pela atenção! Tchau!`);
+                                await XcallyApiService.addTag(session, Tags.OCORRENCIA_BOLETOS_SOLICITAÇAO_FINALIZADA);
                                 await AtualizaBd(session, 'end');
                                 const nextStep = await session.getCurrentStep();
                                 return { success: true, nextStep }

@@ -146,43 +146,51 @@ export default class XcallyApiService {
     }
 
 
-    static async addTag(interactionID: string, novoIdsTag: string) {
-
-        let novasTags = [];
+    static async addTag(session: Session, novoIdsTag: number) {
 
 
-        //É necessário pegar as outras tags que já tinham sido adicionadas anteriormente
-        const configGet = {
-            method: "GET",
-            maxBodyLength: Infinity,
-            url: `${configJson.xcally.url}/api/openchannel/interactions/${interactionID}?apikey=${configJson.xcally.API_KEY}&includeAll=true`,
-            //url: `${systemConfiguration[0].ROOT_URL}/api/openchannel/interactions/${interactionID}?apikey=${systemConfiguration[0].APIKEY}&includeAll=true`,
-            headers: {
-                "Content-Type": "application/json"
-            },
-        };
+        try {
+            const interactionID = session.parsedData.interactionId;
 
-        const response = await axios.request(configGet);
+            let novasTags = [];
+            const apiToken = configJson.xcally.API_KEY
 
-        if (response.data && response.data.Tags && response.data.Tags.length > 0) {
-            novasTags = response.data.Tags.map((item: { id: any; }) => item.id);
+            //É necessário pegar as outras tags que já tinham sido adicionadas anteriormente
+            const configGet = {
+                method: "GET",
+                maxBodyLength: Infinity,
+                url: `${configJson.xcally.url}/api/openchannel/interactions/${interactionID}?apikey=${apiToken}&includeAll=true`,
+                //url: `${systemConfiguration[0].ROOT_URL}/api/openchannel/interactions/${interactionID}?apikey=${systemConfiguration[0].APIKEY}&includeAll=true`,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            };
+
+            const response = await axios.request(configGet);
+
+            if (response.data && response.data.Tags && response.data.Tags.length > 0) {
+                console.log('-> Pegando tags antigas ', response.data.Tags);
+                novasTags = response.data.Tags.map((item: { id: string | number }) => item.id.toString());
+            }
+
+            //adiciona as novas tags para fazer o post
+            novasTags.push(novoIdsTag.toString())
+
+            const configPost = {
+                method: "post",
+                url: `${configJson.xcally.url}/api/openchannel/interactions/${interactionID}/tags?apikey=${apiToken}`,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: { ids: novasTags },
+            };
+
+            const response2 = await axios.request(configPost);
+            return response2;
+
+        } catch (error) {
+            console.log(`[ERRO] addTag`, error);
         }
-
-
-
-        //adiciona as novas tags para fazer o post
-        novasTags.push(novoIdsTag)
-
-        const configPost = {
-            method: "post",
-            url: `${configJson.xcally.url}/api/openchannel/interactions/${interactionID}/tags?apikey=${configJson.xcally.API_KEY}`,
-            headers: {
-                "Content-Type": "application/json"
-            },
-            data: { ids: novasTags },
-        };
-        const response2 = await axios.request(configPost);
-        return response2;
 
     }
 
