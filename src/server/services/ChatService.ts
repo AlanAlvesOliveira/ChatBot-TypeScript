@@ -7,6 +7,7 @@ import { validaRespotaUsuario as validaRespostaUsuario } from "../core/useCases/
 import XcallyApiService from './XcallyApiService';
 import { VerificaExcessoInteracoes } from './VerificaExcessoInteracoes';
 import { ResultAction } from '../interfaces/ResultAction';
+import { safeStringify } from '../utils/safeStringify';
 
 export default class ChatService {
     static async flow(data: ParsedData): Promise<string> {
@@ -41,34 +42,11 @@ export default class ChatService {
                 currentStep = result.nextStep;
             }
 
-            // const aguardaCpfOuCnpjAction = currentStep.actions.find(x => x.type === 'aguardaCpfOuCnpj');
-            // if (aguardaCpfOuCnpjAction) {
-            //     console.log(`-> Esperando (aguardaCpfOuCnpjAction) resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
-
-            //     const newStep = await aguardaCpfOuCnpj(session, aguardaCpfOuCnpjAction.params.nextStep);
-            //     if (!newStep) {
-            //         console.log('não foi possível localizar um novo step em aguardaRespostaAction');
-            //     } else {
-            //         currentStep = newStep;
-            //     }
-            // } else {
-            //     const aguardaRespostaAction = currentStep.actions.find(x => x.type === 'aguardaResposta');
-
-            //     if (aguardaRespostaAction) {
-            //         console.log(`-> Esperando (aguardaRespostaAction) resposta interactionIdBd: ${session.interactionIdBd} stepId: ${currentStep.stepId}`);
-
-            //         const newStep = await validaRespostaUsuario(session, aguardaRespostaAction);
-            //         if (!newStep) {
-            //             console.log('não foi possível localizar um novo step em aguardaRespostaAction');
-            //         } else {
-            //             currentStep = newStep;
-            //         }
-            //     }
-            // }
         }
 
+        //console.log(`------------->   ${safeStringify(session)}`);
 
-        if (!session.sessionDb.aguardandoResposta) {
+        if (session.sessionDb.sessionStatus !== 'queue' && !session.sessionDb.aguardandoResposta) {
             for (const action of currentStep.actions) {
 
                 try {

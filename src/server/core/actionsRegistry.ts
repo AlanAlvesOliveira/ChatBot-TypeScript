@@ -55,7 +55,11 @@ const actionRegistry: ActionRegistry = {
             return await session.updateAguardandoResposta(true);
         } else {
             const nextStep = await aguardaCpfOuCnpj(session, args.params.nextStep);
-            return { success: true, nextStep }
+            if (nextStep) {
+                return { success: true, nextStep }
+            } else {
+                return { success: false }
+            }
         }
     },
     "aguardarNumeroNotafiscal": async (session, args) => {
@@ -165,7 +169,17 @@ const actionRegistry: ActionRegistry = {
                 } as BoletosRequest
 
                 const listaBoletosOriginal = await ItauApiService.GetBoletoPorFiltro(boleto, token.access_token)
-                if (!listaBoletosOriginal) throw new Error('Erro em GetBoletoPorFiltro');
+
+                if (!listaBoletosOriginal) {
+                    //cpf é válido mas não tem na base do itaú
+                    await XcallyApiService.SendMessage("cpf válido, mas não existe na base", session, ` Olha, como não consegui encontrar o CPF/
+ CNPJ, estou te transferindo para um dos 
+nossos colaboradores. `);
+                    await AtualizaBd(session, 'queue');
+                    const nextStep = await session.getCurrentStep();
+                    return { success: true, nextStep }
+                }
+
                 const todosBoletos: Boleto[] = listaBoletosOriginal.data.map(boleto =>
                 ({
                     dataVencimentoFormatada: formatarDataDDMM(new Date(boleto.dataVencimento)),
@@ -424,24 +438,86 @@ nossos colaboradores...`);
             try {
                 const boletos = session.getBoletos();
                 if (!boletos) throw new Error('sem boletos em memoria')
+                boletos.menuRespostas = [];
                 const boleto = boletos.boletoSelecionado;
                 console.log(`boleto selecionado para impressão ${JSON.stringify(boleto)} `)
                 if (!boleto) {
                     await XcallyApiService.SendMessage("BaixarBoleto", session, "Ocorreu algum erro na impressão do boleto");
                 } else {
+
                     await sendBoleToClient(session, boleto.codigoCarteira, boleto.nosso_numero);
-                    const boletos = session.getBoletos();
 
                     await new Promise((resolve) => setTimeout(resolve, 3000));
 
+
                     if (boletos?.boletosFiltrados?.length && boletos?.boletosFiltrados?.length > 1) {
-                        await XcallyApiService.SendMessage('BaixarBoleto:', session, ` Você deseja emitir outro boleto?
- 1. Sim
- 2. Não`);
+
+                        //case mais de 1 boleto
+                        boletos.menuRespostas.push({
+                            valor: 'ignorar',
+                            texto: 'Você deseja emitir outro boleto?\n',
+                            action: async () => {
+                                return { success: true }
+                            }
+                        });
+                        boletos.menuRespostas.push({
+                            valor: '1',
+                            texto: '\n1. SIM',
+                            action: async () => {
+                                //TODO TESTAR
+                                await AtualizaBd(session, '1_2_1_1_1_1_2_1'); // lista boletos
+                                const nextStep = await session.getCurrentStep();
+                                return { success: true, nextStep }
+                            }
+                        });
+                        boletos.menuRespostas.push({
+                            valor: '2',
+                            texto: '\n2. NÃO',
+                            action: async () => {
+                                //TODO TESTAR
+                                await XcallyApiService.SendMessage('', session, `Obrigado pela atenção! Tchau!`);
+                                await AtualizaBd(session, 'end');
+                                const nextStep = await session.getCurrentStep();
+                                return { success: true, nextStep }
+                            }
+                        });
+                        await XcallyApiService.SendMessage('BaixarBoleto:'
+                            , session, boletos.menuRespostas
+                                .map(menu => menu.texto).join(''));
                     } else {
-                        await XcallyApiService.SendMessage('BaixarBoleto:', session, `Sua solicitação foi resolvida?
- 1. Sim
- 2. Não` );
+
+                        //case um boleto
+                        boletos.menuRespostas.push({
+                            valor: 'ignorar',
+                            texto: 'Sua solicitação foi resolvida?\n',
+                            action: async () => {
+                                return { success: true }
+                            }
+                        });
+                        boletos.menuRespostas.push({
+                            valor: '1',
+                            texto: '\n1. SIM',
+                            action: async () => {
+                                //todo encerrar
+                                await XcallyApiService.SendMessage('', session, `Obrigado pela atenção! Tchau!`);
+                                await AtualizaBd(session, 'end');
+                                const nextStep = await session.getCurrentStep();
+                                return { success: true, nextStep }
+                            }
+                        });
+                        boletos.menuRespostas.push({
+                            valor: '2',
+                            texto: '\n2. NÃO',
+                            action: async () => {
+                                await XcallyApiService.SendMessage('', session, `Aguarde enquanto transferimos`);
+                                await AtualizaBd(session, 'queue');
+                                const nextStep = await session.getCurrentStep();
+                                return { success: true, nextStep }
+                            }
+                        });
+                        await XcallyApiService.SendMessage('BaixarBoleto:'
+                            , session, boletos.menuRespostas
+                                .map(menu => menu.texto).join(''));
                     }
                 }
                 await session.updateAguardandoResposta(true);
@@ -453,51 +529,40 @@ nossos colaboradores...`);
             }
 
         } else {
-            console.log('entrei no else do Baixar boleto')
 
-            const reposta = session.parsedData.messageFromClient;
-            switch (reposta) {
-                case '1': {
-                    //TODO TESTAR
-                    await XcallyApiService.SendMessage('', session, `Obrigado pela atenção! Tchau!`);
-                    await AtualizaBd(session, 'end');
-                    const nextStep = await session.getCurrentStep();
-                    return { success: true, nextStep }
-                }
 
-                case '2': {
-                    //TODO TESTAR
-                    await XcallyApiService.SendMessage('', session, `Aguarde enquanto transferimos`);
-                    await AtualizaBd(session, 'queue');
-                    const nextStep = await session.getCurrentStep();
-                    return { success: true, nextStep }
-                }
+            //esperando resposta
 
-                default: {
-                    //TODO TESTAR
-                    session.sessionDb.countAnswerError++
-                    await session.sessionDb.save();
+            let boletosEmMemoria: BoletosEmMemoria | undefined = session.getBoletos();
 
-                    if (session.sessionDb.countAnswerError >= 2) {
-                        await XcallyApiService.SendMessage('', session, ` Olha, como não consegui entender a sua 
+
+            if (!boletosEmMemoria) throw new Error('não encontrei boletosEmMemoria')
+            const boletosFiltrados = boletosEmMemoria.boletosFiltrados
+            if (!boletosFiltrados) throw new Error('não enconrei boletosFiltrados em memoria')
+            const nextStep = steps.steps.find(x => x.stepId === '1_2_1_1_1_1_2_1_1');
+
+            if (!nextStep) throw new Error('nao encontrei step 1_2_1_1_1_1_2_1_1');
+            console.log('$$$$$$$$ newStep ', nextStep.stepId);
+
+            const respostaUsuario = session.parsedData.messageFromClient;
+            const opcaoEncontrada = boletosEmMemoria.menuRespostas?.find(menu =>
+                menu.valor === respostaUsuario
+            );
+
+            if (opcaoEncontrada) {
+                console.log(JSON.stringify(opcaoEncontrada))
+                console.log('Resposta válida encontrada!');
+                return await opcaoEncontrada.action()
+            } else {
+                //TODO, TESTAR
+                await XcallyApiService.SendMessage('Lista', session, ` Olha, como não consegui entender a sua 
 solicitação, vou te transferir para um dos 
 nossos colaboradores...`);
-                        await AtualizaBd(session, 'queue');
-                        const nextStep = await session.getCurrentStep();
-                        return { success: true, nextStep }
-                    } else {
-                        await XcallyApiService.SendMessage('', session, `Desculpa, mas o dado informado está invalido.  Vamos 
-tentar novamente?
-
- Posso te ajudar com algo mais?
- 1. Sim
- 2. Não`);
-                        return { success: true }
-                    }
-                }
-
-
+                await AtualizaBd(session, 'queue');
+                const nextStep = await session.getCurrentStep();
+                return { success: true, nextStep }
             }
+
         }
     },
 };
