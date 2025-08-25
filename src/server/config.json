@@ -4,8 +4,7 @@
             "port": 3109,
             "TIMEOUT_INTERACAO_EM_SEGUNDOS": 90,
             "TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS": 60,
-            "MAXIMO_INTERACOES": 20,
-            "INTERVALO_PARA_VERIFICACAO_EM_MINUTOS": 60
+            "MAXIMO_INTERACOES_24_HORAS": 50
         },
         "xcally": {
             "url": "https://sssaude.teledatabrasil.com.br",
@@ -35,8 +34,7 @@
             "port": 3109,
             "TIMEOUT_INTERACAO_EM_SEGUNDOS": 180,
             "TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS": 90,
-            "MAXIMO_INTERACOES": 20,
-            "INTERVALO_PARA_VERIFICACAO_EM_MINUTOS": 60
+            "MAXIMO_INTERACOES_24_HORAS": 50
         },
         "xcally": {
             "url": "http://localhost:9000",

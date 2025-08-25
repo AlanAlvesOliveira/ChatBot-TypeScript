@@ -6,23 +6,23 @@ const configJson = getConfiguration();
 interface QtdInteracoes {
     maximoAtingido: boolean;
     contactId?: string
-    MAXIMO_INTERACOES?: number;
-    INTERVALO_PARA_VERIFICACAO_EM_MINUTOS?: number;
+    MAXIMO_INTERACOES_24_HORAS?: number;
+    QUANTIDADE_ULTIMAS_24_HORAS?: number
+
 }
 
 export async function VerificaExcessoInteracoes(contactId: string): Promise<QtdInteracoes> {
 
-    const total = await XcallyApiService.getTotalInteractionsByContatactId(contactId);
+    const response = await XcallyApiService.getTotalInteractionsByContatactId(contactId);
 
-    // if (total.count && total.count > configJson.plugin.MAXIMO_INTERACOES) {
-    //     return {
-    //         contactId,
-    //         maximoAtingido: true,
-    //         MAXIMO_INTERACOES: configJson.plugin.MAXIMO_INTERACOES,
-    //         INTERVALO_PARA_VERIFICACAO_EM_MINUTOS: configJson.plugin.INTERVALO_PARA_VERIFICACAO_EM_MINUTOS,
-    //         tota_dentro_range: total.count
-    //     }
-    // }
+    if (response.count && response.count > configJson.plugin.MAXIMO_INTERACOES_24_HORAS) {
+        return {
+            contactId,
+            maximoAtingido: true,
+            MAXIMO_INTERACOES_24_HORAS: configJson.plugin.MAXIMO_INTERACOES_24_HORAS,
+            QUANTIDADE_ULTIMAS_24_HORAS: response.count
+        }
+    }
     return {
         maximoAtingido: false,
     };

@@ -13,12 +13,11 @@ export default class ChatService {
     static async flow(data: ParsedData): Promise<string> {
 
         const excessoDeInteracoes = await VerificaExcessoInteracoes(data.contactId);
-        //não está filtrando corretamente
-        //console.log('excessoDeInteracoes -> ', excessoDeInteracoes)
 
         if (excessoDeInteracoes && excessoDeInteracoes.maximoAtingido) {
-            console.log(`[WARNING] Excesso de interações detectado para ${excessoDeInteracoes}`,);
-            return 'end';
+            console.log(`[WARNING] Excesso de interações detectado para ${JSON.stringify(excessoDeInteracoes)}`,);
+            await XcallyApiService.CloseInterationSemSession("excesso de interações", data.interactionId, 'excesso de interações')
+            return '';
         }
 
         const session = await SessionManager.createOrGetSession(data);

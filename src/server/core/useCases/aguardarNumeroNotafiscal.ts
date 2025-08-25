@@ -3,7 +3,9 @@ import XcallyApiService from "../../services/XcallyApiService";
 import Session from "../Session";
 
 export async function aguardarNumeroNotafiscal(session: Session, nextStep: string): Promise<StoredStep | undefined> {
-    const msg = session.parsedData.messageFromClient;
+
+    const msgOriginal = session.parsedData.messageFromClient;
+    const msg = msgOriginal.replace(/\D/g, '');
 
     if (!ValidaNotaFiscal(msg)) {
 

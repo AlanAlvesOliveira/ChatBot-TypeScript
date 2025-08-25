@@ -203,32 +203,24 @@ export default class XcallyApiService {
 
                 if (!contactId) throw new Error('Contact Id é obrigatório');
 
-                const url = new URL(`${configJson.xcally.url}/api/openchannel/interactions`);
-                url.searchParams.append('OpenchannelAccountId', configJson.xcally.ID_OPEN_CHANNEL.toString());
-
+                const url = `${configJson.xcally.url}/api/openchannel/interactions`;
                 const hoje = new Date();
-                const dataInicial = new Date(hoje);
+                const dataFormatada = hoje.toISOString().split('T')[0];
+                const openchannelId = configJson.xcally.ID_OPEN_CHANNEL.toString();
+                const apiKey = configJson.xcally.API_KEY;
 
-                const minutos = configJson.plugin.INTERVALO_PARA_VERIFICACAO_EM_MINUTOS;
-                if (!minutos) throw new Error('Verique se existe INTERVALO_PARA_VERIFICACAO_EM_MINUTOS no config.json');
+                // Parâmetros devidamente codificados
+                const params = new URLSearchParams({
+                    OpenchannelAccountId: openchannelId,
+                    search: `Contact:=$eq[${contactId}]||createdAt:=$between[${dataFormatada},${dataFormatada}]||OpenchannelAccountId:=$eq[${openchannelId}]`,
+                    apikey: apiKey
+                });
 
-                dataInicial.setMinutes(dataInicial.getMinutes() - minutos);
-                const dataFinal = new Date(hoje);
-                const createdAt = {
-                    $gte: dataInicial.toISOString(), // Ex: "2023-11-15T00:00:00.000Z"
-                    $lte: dataFinal.toISOString()    // Ex: "2023-11-15T23:59:59.999Z"
-                };
-
-                new Date().toISOString()
-                url.searchParams.append('createdAt', JSON.stringify(createdAt));
-
-                url.searchParams.append('limit', '1');
-                url.searchParams.append('offset', '0');
-                url.searchParams.append('page', '1');
-                url.searchParams.append('search', `[$and]Contact:=$eq[${contactId}]||OpenchannelAccountId:=$eq[${configJson.xcally.ID_OPEN_CHANNEL}]`);
-                url.searchParams.append('apikey', configJson.xcally.API_KEY);
-
-                const response = await axios.get(url.toString());
+                const fullUrl = `${url}?${params.toString()}`;
+                //console.log('URL completa:', fullUrl);
+                const response = await axios.get(fullUrl, {
+                    timeout: 10000
+                });
 
                 return {
                     success: true,
@@ -286,6 +278,58 @@ export default class XcallyApiService {
                     //     details: error.response?.data?.details
                     // });
                     sessionData.clearTimeoutsAndRemoveFromMemory(`${context} erro CloseInteration `);
+                    return {
+                        success: false,
+                        error: 'Database constraint violation'
+                    };
+                }
+
+                // Outros erros HTTP
+                console.error('[ERR] SendMessage - API Error:', {
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    config: error.config
+                });
+                return {
+                    success: false,
+                    error: error.response?.data?.message || 'API request failed'
+                };
+            }
+
+            // Erros não relacionados ao Axios
+            console.error('[ERR] SendMessage - Unexpected error:', error);
+            return {
+                success: false,
+                error: 'Unexpected error occurred'
+            };
+        }
+    }
+
+    static async CloseInterationSemSession(context: string, interactionId: string, disposition: string) {
+
+        try {
+
+            const config = {
+                method: "put",
+                maxBodyLength: Infinity,
+                url: `${configJson.xcally.url}/api/openchannel/interactions/${interactionId}?apikey=${configJson.xcally.API_KEY}`,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: { closed: true, disposition: "EXCESSO DE INTERAÇÕES" },
+            };
+
+            const response = await axios.request(config);
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                // Erro 500 com mensagem específica de constraint
+                if (error.response?.status === 500 &&
+                    error.response?.data?.message?.includes('foreign key constraint fails')) {
+                    // console.error('[ERR] SendMessage - Foreign key constraint violation:', {
+                    //     code: error.response?.data?.code,
+                    //     message: error.response?.data?.message,
+                    //     details: error.response?.data?.details
+                    // });                    
                     return {
                         success: false,
                         error: 'Database constraint violation'

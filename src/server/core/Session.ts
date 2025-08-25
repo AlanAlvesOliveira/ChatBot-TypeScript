@@ -57,7 +57,7 @@ export default class Session {
             clearTimeout(this.TIMEOUT_INTERACAO_AVISO_EM_SEGUNDOS);
             interactionFromBd.enviouAlertaFaltaInteracao = true;
             await interactionFromBd.save();
-            await XcallyApiService.SendMessage("enviaAvisoTimeout", this, 'Alerta de falta de interação ');
+            await XcallyApiService.SendMessage("enviaAvisoTimeout", this, 'Estamos aguardando sua resposta, caso não ocorra encerraremos este atendimento');
         }
 
     }
